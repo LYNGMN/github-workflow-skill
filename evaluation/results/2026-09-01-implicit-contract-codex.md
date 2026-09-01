@@ -45,3 +45,11 @@ The runner keeps `--with-overlap` as a separate diagnostic. In the observed host
 ## Verdict
 
 The isolated public package passed eight actual Codex runs: explicit and implicit invocation, default and low reasoning, and English and Korean responses. The overlap diagnostic remains intentionally separate and may identify a host-level routing conflict. No GitHub mutation occurred.
+
+## Post-review hardening — 2026-09-02
+
+An independent review found that the first runner inherited its parent process environment and accepted progress labels that appeared more than once or inside another sentence. The runner now passes an explicit child-process allowlist, removes token, API-key, generic-secret, and Git-redirection variables, disables system and global Git configuration in the temporary repository, and sets model-generated shell environment inheritance to `none`. Authentication remains available through browser or system credential storage under the retained home directory; an environment API key is not forwarded.
+
+The response validator now requires each localized progress field to appear exactly once, at the start of its own non-empty line, in the required order. The next-step field must still be the final non-empty line. A deterministic regression reproduces and rejects both the duplicate-label and inline-label false-pass cases.
+
+After these changes, the complete real Codex matrix ran again. All eight combinations passed: explicit and implicit invocation, default and low reasoning, and English and Korean responses. The runner reported the read-only sandbox, the allowlisted environment boundary, and no GitHub mutation. The deterministic suite also passed all 53 tests, and `git diff --check` passed.

@@ -3,26 +3,25 @@ import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from
 import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '..');
 const validModes = new Set(['explicit', 'implicit', 'all']);
 const validReasoning = new Set(['default', 'low']);
+const childEnvironmentAllowlist = [
+  'PATH', 'HOME', 'TMPDIR', 'TMP', 'TEMP', 'LANG', 'LC_ALL', 'LC_CTYPE',
+  'TERM', 'COLORTERM', 'NO_COLOR', 'SSL_CERT_FILE', 'SSL_CERT_DIR',
+  'NODE_EXTRA_CA_CERTS'
+];
 
 function argument(name, fallback) {
   const index = process.argv.indexOf(name);
-  return index === -1 ? fallback : process.argv[index + 1];
+  if (index === -1) return fallback;
+  const value = process.argv[index + 1];
+  assert.ok(value && !value.startsWith('--'), `${name} requires a value`);
+  return value;
 }
 
-const mode = argument('--mode', 'implicit');
-const reasoning = argument('--reasoning', 'default').split(',').filter(Boolean);
-const withOverlap = process.argv.includes('--with-overlap');
-assert.ok(validModes.has(mode), '--mode must be explicit, implicit, or all');
-assert.ok(reasoning.length > 0 && reasoning.every((value) => validReasoning.has(value)), '--reasoning must contain default and/or low');
-
-const modes = mode === 'all' ? ['explicit', 'implicit'] : [mode];
-const workspace = mkdtempSync(join(tmpdir(), 'managing-github-workflows-codex-'));
-const skillDirectory = join(workspace, '.agents', 'skills', 'managing-github-workflows');
-const outputDirectory = join(workspace, 'outputs');
 const skillEntries = ['SKILL.md', 'CONTRIBUTING.md', 'LICENSE', 'README.md', 'README.ko.md', 'agents', 'references'];
 
 const cases = [
@@ -42,24 +41,49 @@ const cases = [
   }
 ];
 
-function sanitize(value) {
+export function isolatedChildEnvironment(environment = process.env) {
+  const isolated = {};
+  for (const name of childEnvironmentAllowlist) {
+    if (typeof environment[name] === 'string' && environment[name].length > 0) {
+      isolated[name] = environment[name];
+    }
+  }
+  isolated.GIT_CONFIG_NOSYSTEM = '1';
+  isolated.GIT_CONFIG_GLOBAL = process.platform === 'win32' ? 'NUL' : '/dev/null';
+  isolated.GIT_TERMINAL_PROMPT = '0';
+  isolated.GIT_OPTIONAL_LOCKS = '0';
+  return isolated;
+}
+
+export function assertProgressFields(text, fields, next) {
+  const lines = text.trim().split(/\r?\n/).filter((line) => line.trim());
+  let previousLine = -1;
+
+  for (const field of fields) {
+    const occurrences = text.split(field).length - 1;
+    assert.equal(occurrences, 1, `${field} must appear exactly once`);
+    const lineIndexes = lines
+      .map((line, index) => (line.startsWith(field) ? index : -1))
+      .filter((index) => index !== -1);
+    assert.equal(lineIndexes.length, 1, `${field} must start its own line`);
+    assert.ok(lineIndexes[0] > previousLine, `${field} must appear in the required order`);
+    previousLine = lineIndexes[0];
+  }
+
+  assert.ok(lines.at(-1)?.startsWith(next), `${next} field must be the final non-empty line`);
+}
+
+function sanitize(value, workspace) {
   return value
     .replaceAll(homedir(), '<home-directory>')
     .replaceAll(workspace, '<temporary-workspace>')
-    .replace(/gh[opusr]_[A-Za-z0-9_]+/g, '<redacted-token>')
+    .replace(/(?:github_pat_|gh[opusr]_)[A-Za-z0-9_]+/g, '<redacted-token>')
+    .replace(/sk-[A-Za-z0-9_-]+/g, '<redacted-token>')
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '<redacted-email>');
 }
 
 function assertResponse(text, testCase) {
-  let previous = -1;
-  for (const field of testCase.fields) {
-    const index = text.indexOf(field);
-    assert.ok(index > previous, `${testCase.language}: missing or unordered field ${field}`);
-    previous = index;
-  }
-
-  const lines = text.trim().split(/\r?\n/).filter((line) => line.trim());
-  assert.ok(lines.at(-1).startsWith(testCase.next), `${testCase.language}: next-step field must be the final non-empty line`);
+  assertProgressFields(text, testCase.fields, testCase.next);
   assert.match(text, /managing-github-workflows/, `${testCase.language}: canonical skill name is missing`);
   assert.match(text, /Draft/i, `${testCase.language}: Draft is missing`);
   assert.match(text, /Ready for review/i, `${testCase.language}: Ready for review is missing`);
@@ -71,66 +95,95 @@ function assertResponse(text, testCase) {
   }
 
   assert.doesNotMatch(text, /\/Users\/|\/home\/|[A-Za-z]:\\/, `${testCase.language}: personal path or home directory leaked`);
-  assert.doesNotMatch(text, /gh[opusr]_[A-Za-z0-9_]+|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i, `${testCase.language}: sensitive token or email leaked`);
+  assert.doesNotMatch(text, /(?:github_pat_|gh[opusr]_)[A-Za-z0-9_]+|sk-[A-Za-z0-9_-]+|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i, `${testCase.language}: sensitive token or email leaked`);
 }
 
-try {
-  mkdirSync(skillDirectory, { recursive: true });
-  for (const entry of skillEntries) {
-    cpSync(join(root, entry), join(skillDirectory, entry), { recursive: true });
-  }
-  mkdirSync(outputDirectory, { recursive: true });
-  const initialized = spawnSync('git', ['init', '-q'], { cwd: workspace, encoding: 'utf8' });
-  assert.equal(initialized.status, 0, 'could not initialize isolated Git repository');
+function main() {
+  const mode = argument('--mode', 'implicit');
+  const reasoning = argument('--reasoning', 'default').split(',').filter(Boolean);
+  const withOverlap = process.argv.includes('--with-overlap');
+  assert.ok(validModes.has(mode), '--mode must be explicit, implicit, or all');
+  assert.ok(reasoning.length > 0 && reasoning.every((value) => validReasoning.has(value)), '--reasoning must contain default and/or low');
 
-  const globalDuplicate = join(homedir(), '.agents', 'skills', 'managing-github-workflows', 'SKILL.md');
-  const overlappingGitSkill = join(homedir(), '.agents', 'skills', 'managing-git-safely', 'SKILL.md');
-  const isolatedGlobalSkills = [globalDuplicate, ...(withOverlap ? [] : [overlappingGitSkill])]
-    .filter((path) => existsSync(path));
-  const results = [];
+  const modes = mode === 'all' ? ['explicit', 'implicit'] : [mode];
+  const workspace = mkdtempSync(join(tmpdir(), 'managing-github-workflows-codex-'));
+  const skillDirectory = join(workspace, '.agents', 'skills', 'managing-github-workflows');
+  const outputDirectory = join(workspace, 'outputs');
+  const isolatedEnvironment = isolatedChildEnvironment();
 
-  for (const invocation of modes) {
-    for (const effort of reasoning) {
-      for (const testCase of cases) {
-        const output = join(outputDirectory, `${invocation}-${effort}-${testCase.language.toLowerCase()}.txt`);
-        const prompt = invocation === 'explicit'
-          ? `$managing-github-workflows\n\n${testCase.prompt}`
-          : testCase.prompt;
-        const args = [
-          'exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--skip-git-repo-check',
-          '--sandbox', 'read-only', '--cd', workspace, '--output-last-message', output
-        ];
-        if (effort !== 'default') args.push('-c', `model_reasoning_effort="${effort}"`);
-        if (isolatedGlobalSkills.length > 0) {
-          const config = isolatedGlobalSkills.map((path) => `{path="${path}",enabled=false}`).join(',');
-          args.push('-c', `skills.config=[${config}]`);
+  try {
+    mkdirSync(skillDirectory, { recursive: true });
+    for (const entry of skillEntries) {
+      cpSync(join(root, entry), join(skillDirectory, entry), { recursive: true });
+    }
+    mkdirSync(outputDirectory, { recursive: true });
+    const initialized = spawnSync('git', ['init', '-q', '--template='], {
+      cwd: workspace,
+      encoding: 'utf8',
+      env: isolatedEnvironment
+    });
+    assert.equal(initialized.status, 0, 'could not initialize isolated Git repository');
+
+    const globalDuplicate = join(homedir(), '.agents', 'skills', 'managing-github-workflows', 'SKILL.md');
+    const overlappingGitSkill = join(homedir(), '.agents', 'skills', 'managing-git-safely', 'SKILL.md');
+    const isolatedGlobalSkills = [globalDuplicate, ...(withOverlap ? [] : [overlappingGitSkill])]
+      .filter((path) => existsSync(path));
+    const results = [];
+
+    for (const invocation of modes) {
+      for (const effort of reasoning) {
+        for (const testCase of cases) {
+          const output = join(outputDirectory, `${invocation}-${effort}-${testCase.language.toLowerCase()}.txt`);
+          const prompt = invocation === 'explicit'
+            ? `$managing-github-workflows\n\n${testCase.prompt}`
+            : testCase.prompt;
+          const args = [
+            'exec', '--ephemeral', '--ignore-user-config', '--ignore-rules', '--skip-git-repo-check',
+            '--sandbox', 'read-only', '--cd', workspace, '--output-last-message', output,
+            '-c', 'shell_environment_policy.inherit="none"'
+          ];
+          if (effort !== 'default') args.push('-c', `model_reasoning_effort="${effort}"`);
+          if (isolatedGlobalSkills.length > 0) {
+            const config = isolatedGlobalSkills.map((path) => `{path="${path}",enabled=false}`).join(',');
+            args.push('-c', `skills.config=[${config}]`);
+          }
+          args.push(prompt);
+
+          const run = spawnSync('codex', args, {
+            cwd: workspace,
+            encoding: 'utf8',
+            env: isolatedEnvironment,
+            maxBuffer: 8 * 1024 * 1024,
+            timeout: 180_000
+          });
+          if (run.error) throw new Error(sanitize(`Codex execution error for ${invocation}/${effort}/${testCase.language}: ${run.error.message}`, workspace));
+          assert.equal(run.status, 0, sanitize(`Codex failed for ${invocation}/${effort}/${testCase.language}: ${run.stderr}`, workspace));
+          const response = readFileSync(output, 'utf8');
+          try {
+            assertResponse(response, testCase);
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            throw new Error(`${reason}\nSanitized response excerpt:\n${sanitize(response, workspace).slice(0, 4000)}`);
+          }
+          results.push({ invocation, reasoning: effort, language: testCase.language, result: 'pass' });
         }
-        args.push(prompt);
-
-        const run = spawnSync('codex', args, {
-          cwd: workspace,
-          encoding: 'utf8',
-          maxBuffer: 8 * 1024 * 1024,
-          timeout: 180_000
-        });
-        if (run.error) throw new Error(sanitize(`Codex execution error for ${invocation}/${effort}/${testCase.language}: ${run.error.message}`));
-        assert.equal(run.status, 0, sanitize(`Codex failed for ${invocation}/${effort}/${testCase.language}: ${run.stderr}`));
-        const response = readFileSync(output, 'utf8');
-        try {
-          assertResponse(response, testCase);
-        } catch (error) {
-          const reason = error instanceof Error ? error.message : String(error);
-          throw new Error(`${reason}\nSanitized response excerpt:\n${sanitize(response).slice(0, 4000)}`);
-        }
-        results.push({ invocation, reasoning: effort, language: testCase.language, result: 'pass' });
       }
     }
-  }
 
-  process.stdout.write(`${JSON.stringify({ skill: 'managing-github-workflows', sandbox: 'read-only', overlapMode: withOverlap, githubMutation: false, results }, null, 2)}\n`);
-} catch (error) {
-  process.stderr.write(`${sanitize(error instanceof Error ? error.message : String(error))}\n`);
-  process.exitCode = 1;
-} finally {
-  rmSync(workspace, { recursive: true, force: true });
+    process.stdout.write(`${JSON.stringify({ skill: 'managing-github-workflows', sandbox: 'read-only', environment: 'allowlisted', overlapMode: withOverlap, githubMutation: false, results }, null, 2)}\n`);
+  } catch (error) {
+    process.stderr.write(`${sanitize(error instanceof Error ? error.message : String(error), workspace)}\n`);
+    process.exitCode = 1;
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  try {
+    main();
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  }
 }

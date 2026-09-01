@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, extname, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
+import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
@@ -290,6 +291,58 @@ test('provides a privacy-safe real Codex explicit and implicit invocation runner
     /optional|선택/i,
     /CI|continuous integration/i
   ], 'real invocation instructions');
+});
+
+test('Codex invocation isolates child credentials and validates exact progress-field lines', async () => {
+  const runner = read('evaluation/run-codex-invocation.mjs');
+  expectText(runner, [
+    /export function isolatedChildEnvironment/,
+    /export function assertProgressFields/,
+    /shell_environment_policy\.inherit=\\?"none\\?"/,
+    /env:\s*isolatedEnvironment/
+  ], 'Codex invocation isolation contract');
+
+  const moduleUrl = `${pathToFileURL(resolve(root, 'evaluation/run-codex-invocation.mjs')).href}?contract-test=${Date.now()}`;
+  const { assertProgressFields, isolatedChildEnvironment } = await import(moduleUrl);
+  const childEnvironment = isolatedChildEnvironment({
+    PATH: '/usr/bin',
+    HOME: '/safe-home',
+    LANG: 'en_US.UTF-8',
+    GH_TOKEN: 'example-sensitive-value',
+    GITHUB_TOKEN: 'example-sensitive-value',
+    OPENAI_API_KEY: 'example-sensitive-value',
+    GIT_DIR: '/redirected-git-directory',
+    CUSTOM_SECRET: 'example-sensitive-value'
+  });
+
+  assert.equal(childEnvironment.PATH, '/usr/bin');
+  assert.equal(childEnvironment.HOME, '/safe-home');
+  assert.equal(childEnvironment.LANG, 'en_US.UTF-8');
+  for (const blocked of ['GH_TOKEN', 'GITHUB_TOKEN', 'OPENAI_API_KEY', 'GIT_DIR', 'CUSTOM_SECRET']) {
+    assert.ok(!(blocked in childEnvironment), `${blocked} must not reach child processes`);
+  }
+  assert.equal(childEnvironment.GIT_CONFIG_NOSYSTEM, '1');
+  assert.equal(childEnvironment.GIT_CONFIG_GLOBAL, process.platform === 'win32' ? 'NUL' : '/dev/null');
+
+  const fields = ['Status:', 'Current stage:', 'Remaining stages:', 'Next step:'];
+  const valid = [
+    'Status: ACTION REQUIRED',
+    'Current stage: Review',
+    'Remaining stages: Final authorization',
+    'Next step: Show the exact state'
+  ].join('\n');
+  assert.doesNotThrow(() => assertProgressFields(valid, fields, 'Next step:'));
+
+  const duplicate = `${valid}\nStatus: duplicate\nNext step: Show the exact state`;
+  assert.throws(() => assertProgressFields(duplicate, fields, 'Next step:'), /exactly once/i);
+
+  const inline = [
+    'Status: ACTION REQUIRED',
+    'The Current stage: Review',
+    'Remaining stages: Final authorization',
+    'Next step: Show the exact state'
+  ].join('\n');
+  assert.throws(() => assertProgressFields(inline, fields, 'Next step:'), /own line/i);
 });
 
 test('provides reusable cross-runtime behavior evaluation scenarios', () => {
