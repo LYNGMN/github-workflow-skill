@@ -345,6 +345,33 @@ test('Codex invocation isolates child credentials and validates exact progress-f
   assert.throws(() => assertProgressFields(inline, fields, 'Next step:'), /own line/i);
 });
 
+test('Codex invocation serializes Windows skill paths as TOML basic strings', async () => {
+  const moduleUrl = `${pathToFileURL(resolve(root, 'evaluation/run-codex-invocation.mjs')).href}?toml-contract=${Date.now()}`;
+  const { serializeDisabledSkillConfig } = await import(moduleUrl);
+  const windowsPath = String.raw`C:\Users\example\.agents\skills\managing-github-workflows\SKILL.md`;
+
+  assert.equal(
+    serializeDisabledSkillConfig([windowsPath]),
+    `[{path=${JSON.stringify(windowsPath)},enabled=false}]`
+  );
+});
+
+test('Codex invocation preserves and redacts a custom CODEX_HOME', async () => {
+  const moduleUrl = `${pathToFileURL(resolve(root, 'evaluation/run-codex-invocation.mjs')).href}?codex-home-contract=${Date.now()}`;
+  const { isolatedChildEnvironment, sanitizeDiagnostic } = await import(moduleUrl);
+  const codexHome = '/custom/codex-home';
+  const childEnvironment = isolatedChildEnvironment({
+    PATH: '/usr/bin',
+    HOME: '/safe-home',
+    CODEX_HOME: codexHome
+  });
+
+  assert.equal(childEnvironment.CODEX_HOME, codexHome);
+  const sanitized = sanitizeDiagnostic(`authentication failed under ${codexHome}/auth.json`, '/temporary/workspace', { CODEX_HOME: codexHome });
+  assert.doesNotMatch(sanitized, new RegExp(codexHome));
+  assert.match(sanitized, /<codex-home>/);
+});
+
 test('provides reusable cross-runtime behavior evaluation scenarios', () => {
   const evaluation = JSON.parse(read('evaluation/scenarios.json'));
   assert.equal(evaluation.schemaVersion, 1);

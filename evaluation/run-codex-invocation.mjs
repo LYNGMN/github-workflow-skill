@@ -9,7 +9,7 @@ const root = resolve(import.meta.dirname, '..');
 const validModes = new Set(['explicit', 'implicit', 'all']);
 const validReasoning = new Set(['default', 'low']);
 const childEnvironmentAllowlist = [
-  'PATH', 'HOME', 'TMPDIR', 'TMP', 'TEMP', 'LANG', 'LC_ALL', 'LC_CTYPE',
+  'PATH', 'HOME', 'CODEX_HOME', 'TMPDIR', 'TMP', 'TEMP', 'LANG', 'LC_ALL', 'LC_CTYPE',
   'TERM', 'COLORTERM', 'NO_COLOR', 'SSL_CERT_FILE', 'SSL_CERT_DIR',
   'NODE_EXTRA_CA_CERTS'
 ];
@@ -55,6 +55,10 @@ export function isolatedChildEnvironment(environment = process.env) {
   return isolated;
 }
 
+export function serializeDisabledSkillConfig(paths) {
+  return `[${paths.map((path) => `{path=${JSON.stringify(path)},enabled=false}`).join(',')}]`;
+}
+
 export function assertProgressFields(text, fields, next) {
   const lines = text.trim().split(/\r?\n/).filter((line) => line.trim());
   let previousLine = -1;
@@ -73,10 +77,17 @@ export function assertProgressFields(text, fields, next) {
   assert.ok(lines.at(-1)?.startsWith(next), `${next} field must be the final non-empty line`);
 }
 
-function sanitize(value, workspace) {
-  return value
-    .replaceAll(homedir(), '<home-directory>')
-    .replaceAll(workspace, '<temporary-workspace>')
+export function sanitizeDiagnostic(value, workspace, environment = process.env) {
+  let sanitized = String(value);
+  const pathReplacements = [
+    [workspace, '<temporary-workspace>'],
+    [environment.CODEX_HOME, '<codex-home>'],
+    [homedir(), '<home-directory>']
+  ];
+  for (const [path, replacement] of pathReplacements) {
+    if (typeof path === 'string' && path.length > 0) sanitized = sanitized.replaceAll(path, replacement);
+  }
+  return sanitized
     .replace(/(?:github_pat_|gh[opusr]_)[A-Za-z0-9_]+/g, '<redacted-token>')
     .replace(/sk-[A-Za-z0-9_-]+/g, '<redacted-token>')
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '<redacted-email>');
@@ -144,8 +155,7 @@ function main() {
           ];
           if (effort !== 'default') args.push('-c', `model_reasoning_effort="${effort}"`);
           if (isolatedGlobalSkills.length > 0) {
-            const config = isolatedGlobalSkills.map((path) => `{path="${path}",enabled=false}`).join(',');
-            args.push('-c', `skills.config=[${config}]`);
+            args.push('-c', `skills.config=${serializeDisabledSkillConfig(isolatedGlobalSkills)}`);
           }
           args.push(prompt);
 
@@ -156,14 +166,14 @@ function main() {
             maxBuffer: 8 * 1024 * 1024,
             timeout: 180_000
           });
-          if (run.error) throw new Error(sanitize(`Codex execution error for ${invocation}/${effort}/${testCase.language}: ${run.error.message}`, workspace));
-          assert.equal(run.status, 0, sanitize(`Codex failed for ${invocation}/${effort}/${testCase.language}: ${run.stderr}`, workspace));
+          if (run.error) throw new Error(sanitizeDiagnostic(`Codex execution error for ${invocation}/${effort}/${testCase.language}: ${run.error.message}`, workspace));
+          assert.equal(run.status, 0, sanitizeDiagnostic(`Codex failed for ${invocation}/${effort}/${testCase.language}: ${run.stderr}`, workspace));
           const response = readFileSync(output, 'utf8');
           try {
             assertResponse(response, testCase);
           } catch (error) {
             const reason = error instanceof Error ? error.message : String(error);
-            throw new Error(`${reason}\nSanitized response excerpt:\n${sanitize(response, workspace).slice(0, 4000)}`);
+            throw new Error(`${reason}\nSanitized response excerpt:\n${sanitizeDiagnostic(response, workspace).slice(0, 4000)}`);
           }
           results.push({ invocation, reasoning: effort, language: testCase.language, result: 'pass' });
         }
@@ -172,7 +182,7 @@ function main() {
 
     process.stdout.write(`${JSON.stringify({ skill: 'managing-github-workflows', sandbox: 'read-only', environment: 'allowlisted', overlapMode: withOverlap, githubMutation: false, results }, null, 2)}\n`);
   } catch (error) {
-    process.stderr.write(`${sanitize(error instanceof Error ? error.message : String(error), workspace)}\n`);
+    process.stderr.write(`${sanitizeDiagnostic(error instanceof Error ? error.message : String(error), workspace)}\n`);
     process.exitCode = 1;
   } finally {
     rmSync(workspace, { recursive: true, force: true });

@@ -53,3 +53,11 @@ An independent review found that the first runner inherited its parent process e
 The response validator now requires each localized progress field to appear exactly once, at the start of its own non-empty line, in the required order. The next-step field must still be the final non-empty line. A deterministic regression reproduces and rejects both the duplicate-label and inline-label false-pass cases.
 
 After these changes, the complete real Codex matrix ran again. All eight combinations passed: explicit and implicit invocation, default and low reasoning, and English and Korean responses. The runner reported the read-only sandbox, the allowlisted environment boundary, and no GitHub mutation. The deterministic suite also passed all 53 tests, and `git diff --check` passed.
+
+## Ready-for-review findings — 2026-09-02
+
+Marking the Pull Request Ready for review triggered an automated review on the exact Head SHA. The review found two portability gaps: Windows backslashes were interpolated into a TOML basic string without escaping, and a nondefault `CODEX_HOME` was removed even though Codex authentication still uses that location with `--ignore-user-config`.
+
+Two deterministic tests reproduced the failures before implementation. Disabled skill paths now use JSON string serialization, which produces valid TOML basic strings for Windows paths. `CODEX_HOME` is now the only additional credential-location variable in the child allowlist, and diagnostics redact that path before the general home-directory replacement.
+
+After the fixes, the targeted tests passed, Codex CLI accepted the serialized Windows-path configuration, all 55 deterministic tests passed, `node --check` and `git diff --check` passed, and the complete eight-run real Codex matrix passed again. No GitHub mutation occurred during the model runs.
