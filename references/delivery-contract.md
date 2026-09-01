@@ -24,22 +24,27 @@ After Merge, verify the Pull Request is merged, the actual default Branch contai
 
 ### Progress and completion language
 
-Every intermediate update must include both fields:
+Match conversational status and progress fields to the user's language. Do not combine English and Korean in one field label.
 
-- `Current stage / 현재 단계:` what is happening now.
-- `Remaining stages / 남은 단계:` what must still happen before the requested endpoint.
+An English-language report uses these fields, each on its own line:
 
-Every intermediate and final user-facing report must end with `Next step / 다음 단계:` as its last field; nothing follows it. Name one immediate action and its owner. When current authorization lets the agent continue, state the agent's next action and continue instead of asking the user to say “next.” If the requested endpoint is complete, begin with `No action required for the completed request; optional next action:` so completion is not mistaken for a new requirement.
+- `Status: IN PROGRESS`, `Status: ACTION REQUIRED`, `Status: BLOCKED`, `Status: COMPLETE`, or `Status: MERGED`.
+- `Current stage:` what is happening now.
+- `Remaining stages:` what must still happen before the requested endpoint.
+- `Next step:` the immediate action and its owner.
 
-Use exactly one overall status label:
+A Korean-language report uses these fields, each on its own line:
 
-- `Status: IN PROGRESS / 상태: 진행 중 — 완료 아님`
-- `Status: ACTION REQUIRED / 상태: 사용자 조치 필요 — 완료 아님`
-- `Status: BLOCKED / 상태: 차단됨 — 완료 아님`
-- `Status: COMPLETE / 상태: 요청 결과 완료`
-- `Status: MERGED / 상태: 병합 완료`
+- `상태: 진행 중 — 완료 아님`, `상태: 사용자 조치 필요 — 완료 아님`, `상태: 차단됨 — 완료 아님`, `상태: 요청 결과 완료`, or `상태: 병합 완료`.
+- `현재 단계:` 지금 진행하는 단계입니다.
+- `남은 단계:` 요청한 완료 지점까지 남은 단계입니다.
+- `다음 단계:` 즉시 이어질 행동과 행동 주체입니다.
 
-Use `COMPLETE` only after a requested non-Merge endpoint such as an Issue, Local implementation, or Draft Pull Request has been delivered and verified. Use `MERGED` only after the requested Merge result is verified on the actual default Branch. A Commit, Push, or Draft Pull Request must not be reported as overall complete when the requested endpoint is Merge. Say what checkpoint was completed and immediately name the remaining stages. Use `ACTION REQUIRED` when a user action is truly needed, including exact-state Final Merge authorization; otherwise continue, wait, or verify without handing the workflow back prematurely.
+In a Korean-language report, introduce specialized terms with the Korean term first and the English original in parentheses on first occurrence, as `풀 리퀘스트(Pull Request)`, `헤드 SHA(Head SHA)`, and `스쿼시 병합(Squash Merge)`. Describe user-visible milestones and decisions instead of routine internal reading or tool calls.
+
+Every intermediate and final user-facing report must end with the language-matched `Next step:` or `다음 단계:` field as its last field; nothing follows it. Name one immediate action and its owner. When current authorization lets the agent continue, state the agent's next action and continue instead of asking the user to say “next.” If the requested endpoint is complete, begin the final field with `No action required for the completed request; optional next action:` or `필수 작업 없음; 선택 가능한 다음 행동:` so completion is not mistaken for a new requirement.
+
+Use exactly one overall status label from the language-matched list above. Use `Status: COMPLETE` only after a requested non-Merge endpoint such as an Issue, Local implementation, or Draft Pull Request has been delivered and verified. Use `Status: MERGED` only after the requested Merge result is verified on the actual default Branch. A Commit, Push, or Draft Pull Request must not be reported as overall complete when the requested endpoint is Merge. Say what checkpoint was completed and immediately name the remaining stages. Use `Status: ACTION REQUIRED` when a user action is truly needed, including exact-state Final Merge authorization; otherwise continue, wait, or verify without handing the workflow back prematurely.
 
 ## 한국어
 
@@ -63,19 +68,24 @@ Merge 후 Pull Request가 병합됨 상태인지, 실제 기본 브랜치에 예
 
 ### 진행과 완료 표현
 
-모든 중간 보고에는 두 필드를 모두 적습니다.
+대화의 상태 표시와 진행 필드는 사용자 언어에 맞추고, 한 필드에 영어와 한국어 제목을 함께 적지 않습니다.
 
-- `Current stage / 현재 단계:` 지금 진행하는 단계입니다.
-- `Remaining stages / 남은 단계:` 요청한 완료 지점까지 남은 단계입니다.
+영어 답변(English-language report)은 각각 별도 줄에 다음 필드를 사용합니다.
 
-모든 중간 보고와 최종 보고는 `Next step / 다음 단계:`를 마지막 필드로 사용하며, 그 뒤에는 아무 내용도 두지 않습니다. 즉시 이어질 행동 하나와 행동 주체를 명시합니다. 현재 승인 범위에서 에이전트가 계속할 수 있으면 사용자에게 “다음”을 요청하지 않고 에이전트의 다음 행동을 적은 뒤 계속 진행합니다. 요청한 완료 지점이 이미 완료되어 사용자가 해야 할 필수 작업이 없다면 `필수 작업 없음; 선택 가능한 다음 행동:`으로 시작하여 완료와 새로운 필수 작업을 구분합니다.
+- `Status: IN PROGRESS`, `Status: ACTION REQUIRED`, `Status: BLOCKED`, `Status: COMPLETE`, `Status: MERGED` 중 하나
+- `Current stage:`
+- `Remaining stages:`
+- `Next step:`
 
-전체 상태 레이블은 다음 중 정확히 하나를 사용합니다.
+한국어 답변(Korean-language report)은 각각 별도 줄에 다음 필드를 사용합니다.
 
-- `Status: IN PROGRESS / 상태: 진행 중 — 완료 아님`
-- `Status: ACTION REQUIRED / 상태: 사용자 조치 필요 — 완료 아님`
-- `Status: BLOCKED / 상태: 차단됨 — 완료 아님`
-- `Status: COMPLETE / 상태: 요청 결과 완료`
-- `Status: MERGED / 상태: 병합 완료`
+- `상태: 진행 중 — 완료 아님`, `상태: 사용자 조치 필요 — 완료 아님`, `상태: 차단됨 — 완료 아님`, `상태: 요청 결과 완료`, `상태: 병합 완료` 중 하나
+- `현재 단계:`
+- `남은 단계:`
+- `다음 단계:`
 
-`COMPLETE`는 Issue, Local implementation, Draft Pull Request처럼 요청한 Merge가 아닌 완료 지점을 전달하고 검증한 뒤에만 사용합니다. `MERGED`는 요청한 Merge 결과가 실제 기본 브랜치에서 확인된 뒤에만 사용합니다. 요청한 완료 지점이 Merge라면 Commit, Push, Draft Pull Request가 끝났다는 이유로 전체 완료라고 보고하지 않습니다. 완료된 체크포인트와 남은 단계를 바로 이어서 알립니다. 정확한 상태에 대한 최종 Merge 승인처럼 사용자 행동이 정말 필요할 때는 `ACTION REQUIRED`를 사용하고, 그렇지 않으면 작업을 계속하거나 기다리거나 검증합니다.
+한국어 답변의 기술 용어는 처음 등장할 때 `풀 리퀘스트(Pull Request)`, `헤드 SHA(Head SHA)`, `스쿼시 병합(Squash Merge)`처럼 한국어를 먼저 쓰고 영어 원어를 괄호 안에 적습니다. 일상적인 내부 문서 읽기나 도구 호출보다 사용자가 이해해야 할 작업 지점과 결정을 설명합니다.
+
+모든 중간 보고와 최종 보고는 답변 언어에 맞는 `Next step:` 또는 `다음 단계:`를 마지막 필드로 사용하며, 그 뒤에는 아무 내용도 두지 않습니다. 즉시 이어질 행동 하나와 행동 주체를 명시합니다. 현재 승인 범위에서 에이전트가 계속할 수 있으면 사용자에게 “다음”을 요청하지 않고 에이전트의 다음 행동을 적은 뒤 계속 진행합니다. 요청한 완료 지점이 이미 완료되어 사용자가 해야 할 필수 작업이 없다면 마지막 필드를 `필수 작업 없음; 선택 가능한 다음 행동:`으로 시작하여 완료와 새로운 필수 작업을 구분합니다.
+
+위의 한국어 목록에서 전체 상태 표시 하나만 사용합니다. `상태: 요청 결과 완료`는 이슈, 로컬 구현, 초안 풀 리퀘스트처럼 요청한 병합이 아닌 완료 지점을 전달하고 검증한 뒤에만 사용합니다. `상태: 병합 완료`는 요청한 병합 결과가 실제 기본 브랜치에서 확인된 뒤에만 사용합니다. 요청한 완료 지점이 병합이라면 커밋, 푸시, 초안 풀 리퀘스트가 끝났다는 이유로 전체 완료라고 보고하지 않습니다. 완료된 체크포인트와 남은 단계를 바로 이어서 알립니다. `상태: 사용자 조치 필요 — 완료 아님`은 정확한 상태에 대한 최종 병합 승인처럼 사용자 행동이 정말 필요할 때 사용하고, 그렇지 않으면 작업을 계속하거나 기다리거나 검증합니다.

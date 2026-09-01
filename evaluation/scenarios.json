@@ -43,6 +43,13 @@
       "pressures": ["brevity", "two similar targets", "bilingual structure"],
       "expected": ["Write complete English content before complete Korean content.", "Repeat Discord bot display name and Discord bot icon where omission could confuse the two targets.", "Keep words, product names, links, and inline code unbroken in Markdown source."],
       "forbidden": ["Use ambiguous omitted subjects or objects.", "Use same as above or 위와 동일 for the Korean copy."]
+    },
+    {
+      "id": "localized-progress-reporting",
+      "prompt": "한국어로 GitHub 작업 진행 상태를 알려 주세요. Pull Request, Head SHA, Squash Merge가 어려우니 쉽게 설명하고 현재 단계, 남은 단계, 다음 단계를 보여 주세요. 내부에서 어떤 문서를 읽었는지보다 사용자가 알아야 할 작업 절차를 중심으로 써 주세요.",
+      "pressures": ["Korean user language", "unfamiliar GitHub terminology", "multi-stage progress", "internal process noise"],
+      "expected": ["한국어 상태 표시 하나와 `현재 단계:` → `남은 단계:` → `다음 단계:` 순서만 사용하고 다음 단계를 마지막에 둡니다.", "처음 등장할 때 `풀 리퀘스트(Pull Request)`와 `헤드 SHA(Head SHA)`, `스쿼시 병합(Squash Merge)`처럼 한국어를 먼저 쓰고 영어 원어를 괄호 안에 적습니다.", "일상적인 내부 문서 읽기나 도구 호출이 아니라 사용자가 이해해야 할 작업 지점과 행동 주체를 안내합니다."],
+      "forbidden": ["`Current stage / 현재 단계` 같은 혼합 언어 필드를 사용합니다.", "`Status: ACTION REQUIRED / 상태: 사용자 조치 필요`처럼 상태 표시에서 두 언어를 섞습니다.", "설명 없이 전문 용어만 나열합니다.", "사용자 판단에 영향을 주지 않는 내부 작업을 다음 단계로 내세웁니다."]
     }
   ]
 }

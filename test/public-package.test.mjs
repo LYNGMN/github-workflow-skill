@@ -151,6 +151,13 @@ test('ships Codex UI metadata for discoverable explicit and implicit invocation'
   ], 'agents/openai.yaml');
 });
 
+test('default prompt requests reader-language progress labels and bilingual technical terms', () => {
+  const metadata = read('agents/openai.yaml');
+  expectText(metadata, [
+    /^\s+default_prompt: ".*\$managing-github-workflows.*(?:user|reader).*language.*(?:technical|specialized).*Korean.*English original.*"\s*$/mi
+  ], 'agents/openai.yaml localized default prompt');
+});
+
 test('package metadata supports reproducible dry-run packing without npm publication', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.name, 'managing-github-workflows-skill');
@@ -187,7 +194,8 @@ test('provides reusable cross-runtime behavior evaluation scenarios', () => {
     'split-independent-outcomes',
     'complete-delivery-pressure',
     'public-privacy-gate',
-    'bilingual-writing-clarity'
+    'bilingual-writing-clarity',
+    'localized-progress-reporting'
   ];
   assert.deepEqual(evaluation.scenarios.map(({ id }) => id), requiredIds);
   for (const scenario of evaluation.scenarios) {
@@ -201,6 +209,12 @@ test('provides reusable cross-runtime behavior evaluation scenarios', () => {
   for (const state of ['source', 'installed', 'discovered', 'activated', 'authenticated', 'authorized', 'usable']) {
     assert.match(installationContract, new RegExp(state, 'i'), `unique-installation must require the ${state} state`);
   }
+  const localizedProgress = evaluation.scenarios.find(({ id }) => id === 'localized-progress-reporting');
+  expectText(localizedProgress.expected.join(' '), [
+    /현재 단계:[\s\S]{0,160}남은 단계:[\s\S]{0,160}다음 단계:/,
+    /풀 리퀘스트\(Pull Request\)/,
+    /헤드 SHA\(Head SHA\)/
+  ], 'localized progress behavior scenario');
   expectText(read('evaluation/README.md'), [
     /RED/i, /GREEN/i, /fresh context/i, /without the skill/i, /with the skill/i,
     /record the actual response/i, /manual semantic review/i
@@ -594,12 +608,90 @@ test('writing guidelines preserve referents, readable source structure, and bili
     /Discord bot icon:\s*the project's YouTube icon/i
   ], 'English explicit Discord bot targets');
   expectText(korean, [
-    /Discord bot\(디스코드 봇\)의 표시 이름:\s*`Google News`/,
-    /Discord bot의 아이콘:\s*프로젝트의 Google News 아이콘/,
-    /Discord bot의 표시 이름:\s*`YouTube`/,
-    /Discord bot의 아이콘:\s*프로젝트의 YouTube 아이콘/
+    /디스코드 봇\(Discord bot\)의 표시 이름:\s*`Google News`/,
+    /디스코드 봇의 아이콘:\s*프로젝트의 Google News 아이콘/,
+    /디스코드 봇의 표시 이름:\s*`YouTube`/,
+    /디스코드 봇의 아이콘:\s*프로젝트의 YouTube 아이콘/
   ], 'Korean explicit Discord bot targets');
   assert.doesNotMatch(guidelines, /Google News Bot|YouTube Bot|emoji|trademark/i);
+});
+
+test('conversation progress reports use the user language without mixed-language field labels', () => {
+  const skill = read('SKILL.md');
+  const delivery = read('references/delivery-contract.md');
+  const guidelines = read('references/writing-guidelines.md');
+  const readmes = [read('README.md'), read('README.ko.md')];
+  const contractDocuments = [skill, delivery, guidelines, ...readmes];
+
+  for (const document of contractDocuments) {
+    assert.doesNotMatch(document, /`(?:Current stage|Remaining stages|Next step) \/ (?:현재 단계|남은 단계|다음 단계):`/, 'progress labels must not mix English and Korean in one field');
+    assert.doesNotMatch(document, /`Status: (?:IN PROGRESS|ACTION REQUIRED|BLOCKED|COMPLETE|MERGED) \/ 상태:/, 'status labels must not mix English and Korean in one field');
+  }
+
+  expectText(skill, [
+    /match the user(?:'s)? language/i,
+    /Korean[\s\S]{0,220}`현재 단계:`[\s\S]{0,160}`남은 단계:`[\s\S]{0,160}`다음 단계:`/i,
+    /English[\s\S]{0,220}`Current stage:`[\s\S]{0,160}`Remaining stages:`[\s\S]{0,160}`Next step:`/i,
+    /Korean[\s\S]{0,220}`상태: 진행 중 — 완료 아님`[\s\S]{0,180}`상태: 사용자 조치 필요 — 완료 아님`/i,
+    /English[\s\S]{0,220}`Status: IN PROGRESS`[\s\S]{0,180}`Status: ACTION REQUIRED`/i,
+    /technical terms[\s\S]{0,220}Korean[\s\S]{0,160}English original[\s\S]{0,220}first occurrence/i
+  ], 'SKILL localized progress contract');
+
+  expectText(delivery, [
+    /English-language report[\s\S]{0,220}`Current stage:`[\s\S]{0,160}`Remaining stages:`[\s\S]{0,160}`Next step:`/i,
+    /Korean-language report[\s\S]{0,220}`현재 단계:`[\s\S]{0,160}`남은 단계:`[\s\S]{0,160}`다음 단계:`/i,
+    /풀 리퀘스트\(Pull Request\)/,
+    /스쿼시 병합\(Squash Merge\)/
+  ], 'delivery localized progress structure');
+
+  expectText(guidelines, [
+    /conversation[\s\S]{0,220}(?:user|reader)[\s\S]{0,180}language/i,
+    /technical[\s\S]{0,220}Korean[\s\S]{0,160}English original[\s\S]{0,180}first occurrence/i,
+    /풀 리퀘스트\(Pull Request\)/,
+    /헤드 SHA\(Head SHA\)/
+  ], 'writing guidelines localized conversation rules');
+});
+
+test('Korean guidance consistently writes Korean before the English original', () => {
+  const documents = [
+    'SKILL.md',
+    'README.md',
+    'README.ko.md',
+    'references/delivery-contract.md',
+    'references/writing-guidelines.md',
+    'references/github-concepts.md',
+    'references/github-authentication.md',
+    'references/workflow-modes.md',
+    'evaluation/scenarios.json'
+  ];
+
+  const forbiddenEnglishFirstTerms = [
+    'Pull Request\\(풀 리퀘스트\\)',
+    'Head SHA\\(헤드 SHA\\)',
+    'Squash Merge\\(스쿼시 병합\\)',
+    'Issue\\(이슈\\)',
+    'Branch\\(브랜치\\)',
+    'Commit\\(커밋\\)',
+    'Push\\(푸시\\)',
+    'Review\\(리뷰\\)',
+    'Merge\\(병합\\)',
+    'Installed\\(설치됨\\)',
+    'Authenticated\\(인증됨\\)',
+    'Authorized\\(권한 승인됨\\)'
+  ];
+
+  for (const path of documents) {
+    const document = read(path);
+    for (const pattern of forbiddenEnglishFirstTerms) {
+      assert.doesNotMatch(document, new RegExp(pattern), `${path} must not use English(Korean) ordering for ${pattern}`);
+    }
+  }
+
+  expectText(read('SKILL.md'), [
+    /`풀 리퀘스트\(Pull Request\)`/,
+    /`헤드 SHA\(Head SHA\)`/,
+    /`스쿼시 병합\(Squash Merge\)`/
+  ], 'SKILL Korean-first terminology examples');
 });
 
 test('READMEs keep equivalent examples and complete installation options', () => {
@@ -663,12 +755,10 @@ test('delivery contract uses two gates and makes unfinished work unmistakable', 
     /Final Merge authorization[\s\S]{0,360}exact Pull Request[\s\S]{0,120}base[\s\S]{0,120}Head Branch[\s\S]{0,120}Head SHA[\s\S]{0,120}checks[\s\S]{0,120}reviews[\s\S]{0,120}Squash title/i,
     /pending-to-passing[\s\S]{0,220}does not invalidate[\s\S]{0,180}(?:wait|re-check)[\s\S]{0,180}without another approval/i,
     /new commit[\s\S]{0,120}base[\s\S]{0,120}title[\s\S]{0,120}method[\s\S]{0,140}failing check[\s\S]{0,140}conflict[\s\S]{0,140}blocking review[\s\S]{0,240}invalidates[\s\S]{0,180}Draft[\s\S]{0,140}retest[\s\S]{0,140}re-review/i,
-    /Status: IN PROGRESS \/ 상태: 진행 중 — 완료 아님/,
-    /Status: ACTION REQUIRED \/ 상태: 사용자 조치 필요 — 완료 아님/,
-    /Status: BLOCKED \/ 상태: 차단됨 — 완료 아님/,
-    /Status: COMPLETE \/ 상태: 요청 결과 완료/,
-    /Status: MERGED \/ 상태: 병합 완료/,
-    /Current stage \/ 현재 단계[\s\S]{0,180}Remaining stages \/ 남은 단계/i,
+    /English-language report[\s\S]{0,640}Status: IN PROGRESS[\s\S]{0,180}Status: ACTION REQUIRED[\s\S]{0,180}Status: BLOCKED[\s\S]{0,180}Status: COMPLETE[\s\S]{0,180}Status: MERGED/i,
+    /한국어 답변[\s\S]{0,640}상태: 진행 중[\s\S]{0,180}상태: 사용자 조치 필요[\s\S]{0,180}상태: 차단됨[\s\S]{0,180}상태: 요청 결과 완료[\s\S]{0,180}상태: 병합 완료/i,
+    /English-language report[\s\S]{0,220}Current stage:[\s\S]{0,180}Remaining stages:/i,
+    /Korean-language report[\s\S]{0,220}현재 단계:[\s\S]{0,180}남은 단계:/i,
     /Commit, Push, or Draft Pull Request[\s\S]{0,220}(?:must not|cannot)[\s\S]{0,140}overall complete/i,
     /`gh pr merge <PR> --squash --match-head-commit <SHA> --subject "<approved Pull Request title>"`/,
     /separate CLI arguments[\s\S]{0,180}(?:shell interpolation|constructed shell command)/i,
@@ -686,28 +776,34 @@ test('completion labels match the selected endpoint without hiding required acti
   const modes = read('references/workflow-modes.md');
   const readmes = [read('README.md'), read('README.ko.md')];
   expectText(skill, [
-    /Every intermediate and final user-facing report[\s\S]{0,220}end[\s\S]{0,120}`Next step \/ 다음 단계:`/i
+    /Every intermediate and final user-facing report[\s\S]{0,260}(?:user|reader)[\s\S]{0,120}language[\s\S]{0,240}(?:`Next step:`|`다음 단계:`)/i
   ], 'SKILL final next-step field');
   expectText(delivery, [
-    /Status: COMPLETE \/ 상태: 요청 결과 완료[\s\S]{0,260}(?:non-Merge|Merge가 아닌)[\s\S]{0,220}(?:Issue|Local|Draft Pull Request)/i,
-    /Status: ACTION REQUIRED \/ 상태: 사용자 조치 필요 — 완료 아님[\s\S]{0,600}(?:Final Merge authorization|최종 Merge 승인)/i,
-    /Status: MERGED \/ 상태: 병합 완료[\s\S]{0,220}(?:verified|확인)[\s\S]{0,140}(?:default Branch|기본 브랜치)/i,
-    /Every intermediate and final user-facing report[\s\S]{0,220}`Next step \/ 다음 단계:`[\s\S]{0,220}(?:last field|nothing follows)/i,
+    /`Status: COMPLETE`[\s\S]{0,260}requested non-Merge endpoint[\s\S]{0,220}(?:Issue|Local|Draft Pull Request)/i,
+    /`상태: 요청 결과 완료`[\s\S]{0,260}요청한 병합이 아닌 완료 지점[\s\S]{0,220}(?:이슈|로컬|초안 풀 리퀘스트)/i,
+    /`Status: ACTION REQUIRED`[\s\S]{0,600}Final Merge authorization/i,
+    /`상태: 사용자 조치 필요 — 완료 아님`[\s\S]{0,600}최종 병합 승인/i,
+    /`Status: MERGED`[\s\S]{0,220}verified[\s\S]{0,140}default Branch/i,
+    /`상태: 병합 완료`[\s\S]{0,220}기본 브랜치[\s\S]{0,140}확인/i,
+    /Every intermediate and final user-facing report[\s\S]{0,320}(?:`Next step:`|`다음 단계:`)[\s\S]{0,220}(?:last field|nothing follows)/i,
     /If the requested endpoint is complete[\s\S]{0,260}No action required[\s\S]{0,220}optional next action/i,
-    /모든 중간 보고와 최종 보고[\s\S]{0,220}`Next step \/ 다음 단계:`[\s\S]{0,220}(?:마지막 필드|뒤에는 아무 내용도)/i,
+    /모든 중간 보고와 최종 보고[\s\S]{0,320}(?:`Next step:`|`다음 단계:`)[\s\S]{0,220}(?:마지막 필드|뒤에는 아무 내용도)/i,
     /요청한 완료 지점[\s\S]{0,220}완료[\s\S]{0,220}사용자가 해야 할 필수 작업[\s\S]{0,120}없[\s\S]{0,180}선택 가능한 다음 행동/i
   ], 'endpoint completion labels');
   expectText(modes, [
     /Draft delivery[\s\S]{0,420}Draft URL[\s\S]{0,160}(?:endpoint|complete)[\s\S]{0,180}`Status: COMPLETE/i,
-    /Draft 배달[\s\S]{0,420}Draft URL[\s\S]{0,180}(?:완료 지점|완료)[\s\S]{0,180}`Status: COMPLETE/i
+    /초안 배달\(Draft delivery\)[\s\S]{0,420}초안 URL[\s\S]{0,180}(?:완료 지점|완료)[\s\S]{0,180}`상태: 요청 결과 완료/i
   ], 'Draft endpoint status');
-  for (const readme of readmes) {
-    expectText(readme, [
-      /IN PROGRESS[\s\S]{0,180}ACTION REQUIRED[\s\S]{0,180}BLOCKED/i,
-      /COMPLETE[\s\S]{0,220}(?:requested non-Merge endpoint|요청한 Merge가 아닌 완료 지점)/i,
-      /MERGED[\s\S]{0,180}(?:verified Merge|검증된 Merge|병합 결과)/i
-    ], 'README status semantics');
-  }
+  expectText(readmes[0], [
+    /IN PROGRESS[\s\S]{0,180}ACTION REQUIRED[\s\S]{0,180}BLOCKED/i,
+    /COMPLETE[\s\S]{0,220}requested non-Merge endpoint/i,
+    /MERGED[\s\S]{0,180}verified Merge/i
+  ], 'English README status semantics');
+  expectText(readmes[1], [
+    /진행 중[\s\S]{0,180}사용자 조치 필요[\s\S]{0,180}차단됨/,
+    /요청 결과 완료[\s\S]{0,220}요청한 병합이 아닌 완료 지점/,
+    /병합 완료[\s\S]{0,180}병합 결과/
+  ], 'Korean README status semantics');
 });
 
 test('both READMEs support AI-assisted, Git, and no-Git installation', () => {

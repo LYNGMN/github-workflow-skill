@@ -47,10 +47,10 @@ Official references: [`gh auth status`](https://cli.github.com/manual/gh_auth_st
 
 ### 상태 구분
 
-- **Installed(설치됨):** GitHub 도구 또는 connector가 존재합니다.
-- **Authenticated(인증됨):** GitHub 계정의 인증정보가 현재 유효합니다.
-- **Authorized(권한 승인됨):** 사용자가 정확한 계정, OAuth 권한 범위, 실행할 행동을 승인했습니다.
-- **Usable(현재 사용 가능):** 실제 작업을 실행할 현재 환경에서 인증정보에 접근하고 의도한 행동을 수행할 수 있습니다.
+- **설치됨(Installed):** GitHub 도구 또는 connector가 존재합니다.
+- **인증됨(Authenticated):** GitHub 계정의 인증정보가 현재 유효합니다.
+- **권한 승인됨(Authorized):** 사용자가 정확한 계정, OAuth 권한 범위, 실행할 행동을 승인했습니다.
+- **현재 사용 가능(Usable):** 실제 작업을 실행할 현재 환경에서 인증정보에 접근하고 의도한 행동을 수행할 수 있습니다.
 
 이 상태들을 하나로 취급하지 않습니다. 인증은 Push나 Merge에 대한 승인이 아니며, 인증 승인과 각 GitHub 작업 승인은 서로 분리합니다. 인증만으로 Pull Request 수정, Ready for review 전환, 배포, 삭제, 권한 변경을 실행하지 않습니다.
 

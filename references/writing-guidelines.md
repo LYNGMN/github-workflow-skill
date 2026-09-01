@@ -20,6 +20,12 @@ These are illustrative examples, not a universal project rule.
 
 Do not insert a source newline inside a word, product name, URL, inline code span, or Markdown link. Do not hard-wrap prose at a fixed column. Use semantic paragraphs and one blank line around paragraphs, lists, tables, and code blocks.
 
+### Conversation language and progress
+
+In conversation, match ordinary prose, status labels, and progress labels to the user's language. An English response uses `Status: ...`, `Current stage:`, `Remaining stages:`, and `Next step:`. A Korean response uses `상태: ...`, `현재 단계:`, `남은 단계:`, and `다음 단계:`. Never combine the English and Korean status in one field. Put each field on its own line, keep the next-step field last, and describe meaningful milestones rather than routine internal reading or tool calls.
+
+For Korean conversation, write technical terms in Korean first and place the English original in parentheses on first occurrence, such as `풀 리퀘스트(Pull Request)`, `헤드 SHA(Head SHA)`, and `스쿼시 병합(Squash Merge)`. Do not mix Korean-first and English-first parenthetical ordering. After teaching the term once, use the shorter Korean form consistently when the meaning remains clear. Do not translate product names, code, commands, paths, or identifiers.
+
 ### Bilingual output
 
 For one document containing both languages, use `## English` followed by `## 한국어`. Under an existing `##` topic, use `### English` and `### 한국어`. Generated Issue drafts include complete English and Korean sections. Existing Issue Forms remain English input forms. Separate-language README files stay separate and do not add redundant language headings.
@@ -31,11 +37,11 @@ For one document containing both languages, use `## English` followed by `## 한
 생략하면 둘 이상의 해석이 가능한 경우에는 주어, 대상, 속성 이름을 명확히 씁니다. 제공된 대상, 속성, 값은 서로 다른 사실로 다룹니다. 예를 들면 다음과 같이 작성합니다.
 
 ```text
-Discord bot(디스코드 봇)의 표시 이름: `Google News`
-Discord bot의 아이콘: 프로젝트의 Google News 아이콘
+디스코드 봇(Discord bot)의 표시 이름: `Google News`
+디스코드 봇의 아이콘: 프로젝트의 Google News 아이콘
 
-Discord bot의 표시 이름: `YouTube`
-Discord bot의 아이콘: 프로젝트의 YouTube 아이콘
+디스코드 봇의 표시 이름: `YouTube`
+디스코드 봇의 아이콘: 프로젝트의 YouTube 아이콘
 ```
 
 이 예시는 설명을 위한 것이며 모든 프로젝트에 적용하는 규칙이 아닙니다.
@@ -43,6 +49,12 @@ Discord bot의 아이콘: 프로젝트의 YouTube 아이콘
 ### 원본 레이아웃
 
 단어, product name, URL, inline code span, Markdown link 중간에는 원본 줄바꿈을 넣지 않습니다. 일정한 열 너비로 문장을 강제 줄바꿈하지 않습니다. 의미 단위 문단을 쓰고 문단, 목록, 표, code block의 앞뒤에는 빈 줄 하나를 둡니다.
+
+### 대화 언어와 진행 안내
+
+대화 답변의 일반 문장, 상태 표시, 진행 필드는 사용자 언어에 맞춥니다. 한국어 답변은 `상태: ...`, `현재 단계:`, `남은 단계:`, `다음 단계:`를 사용하고, 영어 답변은 `Status: ...`, `Current stage:`, `Remaining stages:`, `Next step:`을 사용합니다. 상태 표시 한 곳에 영어와 한국어를 함께 적지 않습니다. 각 필드를 별도 줄에 두고 다음 단계 필드를 마지막에 두며, 일상적인 내부 문서 읽기나 도구 호출보다 의미 있는 작업 지점을 설명합니다.
+
+한국어 대화에서 기술 용어는 처음 등장할 때 `풀 리퀘스트(Pull Request)`, `헤드 SHA(Head SHA)`, `스쿼시 병합(Squash Merge)`처럼 한국어를 먼저 쓰고 영어 원어를 괄호 안에 적습니다. `영어(한국어)` 순서를 섞어 쓰지 않습니다. 한 번 설명한 뒤에는 뜻이 명확하면 짧은 한국어 표현을 일관되게 사용합니다. 제품명, 코드, 명령, 경로, 식별자는 번역하지 않습니다.
 
 ### 이중 언어 출력
 

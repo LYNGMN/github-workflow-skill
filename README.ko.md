@@ -6,7 +6,7 @@ GitHub 작업을 안전하고 명확하게 진행하기 위한 공개형·도구
 
 ## 목적
 
-이 스킬은 요청에 필요한 GitHub 단계만 선택해 안전하게 완료하도록 돕습니다. Issue(이슈) → Branch(브랜치) → Commit(커밋) → Push(푸시) → Pull Request(풀 리퀘스트) → Review(리뷰) → Merge(병합)는 참고 지도이며 모든 작업의 의무 순서가 아닙니다. 설명은 읽기 전용으로 끝낼 수 있고, Issue 작업은 Issue에서, 로컬 작업은 Push 전에, Draft 배달은 Draft Pull Request에서 끝낼 수 있습니다. 사용자가 이런 이른 완료 지점을 지정하지 않으면 구현·수정·변경 요청은 실제 기본 브랜치에 검증된 Squash Merge를 완료하는 Complete delivery(완전 배달)를 기본값으로 삼습니다.
+이 스킬은 요청에 필요한 GitHub 단계만 선택해 안전하게 완료하도록 돕습니다. 이슈(Issue) → 브랜치(Branch) → 커밋(Commit) → 푸시(Push) → 풀 리퀘스트(Pull Request) → 리뷰(Review) → 병합(Merge)는 참고 지도이며 모든 작업의 의무 순서가 아닙니다. 설명은 읽기 전용으로 끝낼 수 있고, 이슈 작업은 이슈에서, 로컬 작업은 푸시 전에, 초안 배달은 초안 풀 리퀘스트(Draft Pull Request)에서 끝낼 수 있습니다. 사용자가 이런 이른 완료 지점을 지정하지 않으면 구현·수정·변경 요청은 실제 기본 브랜치에 검증된 스쿼시 병합(Squash Merge)을 완료하는 완전 배달(Complete delivery)을 기본값으로 삼습니다.
 
 특정 IDE 버튼, Git 클라이언트, 비공개 명령줄 도구를 요구하지 않습니다. 도구가 설치되었거나 화면에 보인다는 사실만으로 공개, 병합, 삭제, 덮어쓰기 권한이 생기지 않습니다.
 
@@ -15,13 +15,13 @@ GitHub 작업을 안전하고 명확하게 진행하기 위한 공개형·도구
 | 요청한 결과 | 선택 경로 | 전체 완료 기준 |
 | --- | --- | --- |
 | 설명 또는 상태 확인 | 필요한 내용을 확인하고 설명하며 Git 변경 단계를 실행하지 않습니다. | 답변 또는 Review를 전달하면 완료입니다. |
-| Issue만 작성 | 검색 → 한영 Issue 초안 또는 게시입니다. | 합의한 Issue 완료 지점에서 완료입니다. |
-| 로컬 구현 | Branch → Commit → 로컬 Review와 검증입니다. | 로컬에서 완료되며 Push된 내용은 없습니다. |
-| Draft 배달 | Branch → Commit → Push → Draft Pull Request → Review입니다. | 사용자가 Draft를 요청한 경우에만 전체 완료입니다. |
-| 구현·수정·변경 | 선택적 Issue → Branch → Commit → Push → Draft Pull Request → Review → 최종 승인 → Ready for review → Squash Merge → 실제 기본 브랜치 확인입니다. | 병합 결과를 확인한 뒤에만 완료입니다. |
-| 기존 Branch 또는 Pull Request | 유효한 현재 단계에서 재개하고 앞의 작업물을 재사용합니다. | 요청한 완료 지점에서 완료입니다. |
+| 이슈만 작성(Issue only) | 검색 → 한영 이슈 초안 또는 게시입니다. | 합의한 이슈 완료 지점에서 완료입니다. |
+| 로컬 구현(Local implementation) | 브랜치 → 커밋 → 로컬 리뷰와 검증입니다. | 로컬에서 완료되며 푸시된 내용은 없습니다. |
+| 초안 배달(Draft delivery) | 브랜치 → 커밋 → 푸시 → 초안 풀 리퀘스트 → 리뷰입니다. | 사용자가 초안을 요청한 경우에만 전체 완료입니다. |
+| 구현·수정·변경 | 선택적 이슈 → 브랜치 → 커밋 → 푸시 → 초안 풀 리퀘스트 → 리뷰 → 최종 승인 → 리뷰 준비 완료(Ready for review) → 스쿼시 병합 → 실제 기본 브랜치 확인입니다. | 병합 결과를 확인한 뒤에만 완료입니다. |
+| 기존 브랜치 또는 풀 리퀘스트 | 유효한 현재 단계에서 재개하고 앞의 작업물을 재사용합니다. | 요청한 완료 지점에서 완료입니다. |
 
-진행 보고에는 실제 상태에 맞춰 작업 중이면 `IN PROGRESS`, 사용자 행동이 필요하면 `ACTION REQUIRED`, 계속할 수 없으면 `BLOCKED`를 표시합니다. `Current stage / 현재 단계`와 `Remaining stages / 남은 단계`도 모두 적습니다. `COMPLETE`는 요청한 Merge가 아닌 완료 지점을 전달하고 검증한 뒤에만 사용하고, `MERGED`는 병합 결과를 실제 기본 브랜치에서 검증한 뒤에만 사용합니다. Merge가 요청한 결과라면 Commit, Push, Draft Pull Request는 체크포인트이지 전체 완료가 아닙니다. 자세한 기준은 [Workflow modes](references/workflow-modes.md)와 [Delivery contract](references/delivery-contract.md)를 확인하세요.
+진행 보고에는 실제 상태에 맞춰 `상태: 진행 중 — 완료 아님`, `상태: 사용자 조치 필요 — 완료 아님`, `상태: 차단됨 — 완료 아님` 중 하나를 표시합니다. 진행 필드는 사용자 언어에 맞춥니다. 한국어 대화에서는 `현재 단계:`, `남은 단계:`, `다음 단계:`를 각각 별도 줄에 적고 다음 단계를 마지막에 둡니다. 영어 대화에서는 `Current stage:`, `Remaining stages:`, `Next step:`을 사용합니다. 한국어 대화의 기술 용어는 처음 등장할 때 `풀 리퀘스트(Pull Request)`, `스쿼시 병합(Squash Merge)`처럼 한국어를 먼저 쓰고 영어 원어를 괄호 안에 적습니다. `상태: 요청 결과 완료`는 요청한 병합이 아닌 완료 지점을 전달하고 검증한 뒤에만 사용하고, `상태: 병합 완료`는 병합 결과를 실제 기본 브랜치에서 검증한 뒤에만 사용합니다. 병합이 요청한 결과라면 커밋, 푸시, 초안 풀 리퀘스트는 체크포인트이지 전체 완료가 아닙니다. 자세한 기준은 [작업 흐름 모드](references/workflow-modes.md)와 [배달 계약](references/delivery-contract.md)을 확인하세요.
 
 README, Issue, Pull Request 초안을 쓰기 전에는 [Writing guidelines](references/writing-guidelines.md)를 확인하세요. [Workflow modes](references/workflow-modes.md)에서 작업 경로를 고른 뒤 선택한 단계만 [GitHub workflow](references/github-workflow.md)에서 읽습니다. 원격 게시와 Merge에는 [Delivery contract](references/delivery-contract.md)를 적용합니다. 인증이 필요한 GitHub CLI 작업은 [GitHub authentication](references/github-authentication.md), worktree·공개·리뷰·병합·정리 안전 규칙은 [collaboration policy](references/collaboration-policy.md), 쉬운 한영 개념 설명은 [Git and GitHub Concepts](references/github-concepts.md)를 확인하세요.
 
@@ -66,7 +66,7 @@ AI assistant는 소스 있음, 파일 설치됨, 스킬 발견됨, 현재 작업
 | `~/.gemini/config/skills/managing-github-workflows` | Antigravity 제품 | Antigravity의 현재 전역 skills 위치를 사용할 때 선택합니다. | 없으면 `~/.gemini/config/skills`를 만듭니다. | `mkdir -p ~/.gemini/config/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.gemini/config/skills/managing-github-workflows` | Antigravity 제품이 전역에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Antigravity skill manager에서 다시 찾거나 재시작합니다. |
 | `~/.gemini/antigravity-cli/skills/managing-github-workflows` | Antigravity CLI 호환 경로 | CLI가 전역 또는 공용 위치를 발견하지 못할 때 이 호환 위치를 선택합니다. | 없으면 `~/.gemini/antigravity-cli/skills`를 만듭니다. | `mkdir -p ~/.gemini/antigravity-cli/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.gemini/antigravity-cli/skills/managing-github-workflows` | Antigravity CLI가 같은 고유 이름의 스킬을 발견할 수 있습니다. | 오래된 복사본 충돌을 피하도록 런타임마다 활성 복사본 하나만 두고 설치 뒤 CLI를 재검색하거나 재시작합니다. |
 
-source available(소스 있음)는 저장소나 ZIP이 있는 상태, installed(설치됨)는 지원 경로에 파일이 있는 상태, discovered(발견됨)는 런타임이 메타데이터를 색인한 상태, activated(활성화됨)는 현재 작업을 스킬이 맡은 상태입니다. authenticated(인증됨)는 GitHub 계정 연결이 작동하는 상태, authorized(승인됨)는 사용자가 특정 외부 행동을 승인한 상태, usable(현재 사용 가능)은 지금 필요한 기능이 런타임에 모두 노출된 상태입니다. 이 상태들은 서로 다릅니다.
+소스 있음(source available)은 저장소나 ZIP이 있는 상태, 설치됨(installed)은 지원 경로에 파일이 있는 상태, 발견됨(discovered)은 런타임이 메타데이터를 색인한 상태, 활성화됨(activated)은 현재 작업을 스킬이 맡은 상태입니다. 인증됨(authenticated)은 GitHub 계정 연결이 작동하는 상태, 승인됨(authorized)은 사용자가 특정 외부 행동을 승인한 상태, 현재 사용 가능(usable)은 지금 필요한 기능이 런타임에 모두 노출된 상태입니다. 이 상태들은 서로 다릅니다.
 
 ### 런타임별 발견 확인
 

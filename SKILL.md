@@ -7,7 +7,7 @@ compatibility: Requires an Agent Skills-compatible runtime. Git and GitHub tools
 
 # Managing GitHub Workflows
 
-Turn a GitHub request into the smallest safe, verifiable workflow. Explain technical terms with the English term first and the Korean term beside or below it. Tool availability does not grant permission to publish, Merge, delete, force-update, or clean work. GitHub authentication does not grant that permission either.
+Turn a GitHub request into the smallest safe, verifiable workflow. Match conversational guidance to the user's language. In Korean conversation, explain specialized GitHub and developer terms with the Korean term first and the English original in parentheses on first occurrence. Tool availability does not grant permission to publish, Merge, delete, force-update, or clean work. GitHub authentication does not grant that permission either.
 
 ## Select the requested outcome
 
@@ -20,7 +20,18 @@ Read [Workflow modes](references/workflow-modes.md) and choose one endpoint befo
 - Complete delivery: unqualified requests to implement, fix, or change work default to **Complete delivery** through verified Squash Merge into the actual default Branch.
 - Existing work: resume the existing Branch or Pull Request at its current valid stage. Do not recreate completed artifacts.
 
-Report the overall state as `IN PROGRESS`, `ACTION REQUIRED`, `BLOCKED`, `COMPLETE`, or `MERGED`. At every checkpoint, state `Current stage / 현재 단계` and `Remaining stages / 남은 단계`. A Commit, Push, or Draft Pull Request is not overall completion when Merge is the requested endpoint.
+Report the overall state in the user's language. An English report uses `Status: IN PROGRESS`, `Status: ACTION REQUIRED`, `Status: BLOCKED`, `Status: COMPLETE`, or `Status: MERGED`. A Korean report uses `상태: 진행 중 — 완료 아님`, `상태: 사용자 조치 필요 — 완료 아님`, `상태: 차단됨 — 완료 아님`, `상태: 요청 결과 완료`, or `상태: 병합 완료`. A Commit, Push, or Draft Pull Request is not overall completion when Merge is the requested endpoint.
+
+## Communicate progress in the user's language
+
+Match the user-facing prose and progress-field labels to the language of the current user conversation. Do not combine English and Korean in one field label.
+
+- A Korean report uses `현재 단계:`, `남은 단계:`, and `다음 단계:`.
+- An English report uses `Current stage:`, `Remaining stages:`, and `Next step:`.
+
+Use the Korean overall status labels only in a Korean report and the English overall status labels only in an English report. Put each field on its own line and keep the next-step field last. Describe meaningful workflow milestones, user decisions, and blockers; do not narrate routine internal reading or tool calls unless they change the user's decision or explain a blocker.
+
+For Korean conversations, write technical terms with the Korean term first and the English original in parentheses on first occurrence, for example `풀 리퀘스트(Pull Request)`, `헤드 SHA(Head SHA)`, and `스쿼시 병합(Squash Merge)`. Do not mix this with English-first `English(Korean)` ordering. After the term is introduced, use the shorter Korean form consistently when meaning stays clear. Keep product names, code, paths, and commands unchanged. For English conversations, use the English term and add Korean only when the user requests bilingual learning.
 
 ## Load only the references needed now
 
@@ -52,4 +63,4 @@ Never direct Push to the Repository's actual default Branch, whatever its name; 
 
 ## Complete with evidence
 
-Before claiming completion, verify the selected endpoint with fresh evidence. Report what changed, user impact, tests and Review, Git and GitHub state, and unpublished or uncommitted work. Every intermediate and final user-facing report must end with the exact final field `Next step / 다음 단계:`. Name the immediate action and its owner; when the requested endpoint is complete, distinguish no required action from an optional continuation. Put nothing after this field. When facts are unknown, list them under `Open Questions`; do not guess.
+Before claiming completion, verify the selected endpoint with fresh evidence. Report what changed, user impact, tests and Review, Git and GitHub state, and unpublished or uncommitted work. Every intermediate and final user-facing report must use the progress fields that match the user's language and end with either `Next step:` or `다음 단계:`. Name the immediate action and its owner; when the requested endpoint is complete, distinguish no required action from an optional continuation. Put nothing after the final field. When facts are unknown, list them under `Open Questions`; do not guess.
