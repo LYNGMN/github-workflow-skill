@@ -20,6 +20,8 @@ These are illustrative examples, not a universal project rule.
 
 Do not insert a source newline inside a word, product name, URL, inline code span, or Markdown link. Do not hard-wrap prose at a fixed column. Use semantic paragraphs and one blank line around paragraphs, lists, tables, and code blocks.
 
+For every Markdown table, keep the header, delimiter, and every body row at the same number of columns. Validate the Markdown source structure and inspect the rendered table before publication. Treat a malformed or unreadable rendered table as unfinished work.
+
 ### Conversation language and progress
 
 In conversation, match ordinary prose, status labels, and progress labels to the user's language. An English response uses `Status: ...`, `Current stage:`, `Remaining stages:`, and `Next step:`. A Korean response uses `상태: ...`, `현재 단계:`, `남은 단계:`, and `다음 단계:`. Never combine the English and Korean status in one field. Put each field on its own line, keep the next-step field last, and describe meaningful milestones rather than routine internal reading or tool calls.
@@ -49,6 +51,8 @@ For one document containing both languages, use `## English` followed by `## 한
 ### 원본 레이아웃
 
 단어, product name, URL, inline code span, Markdown link 중간에는 원본 줄바꿈을 넣지 않습니다. 일정한 열 너비로 문장을 강제 줄바꿈하지 않습니다. 의미 단위 문단을 쓰고 문단, 목록, 표, code block의 앞뒤에는 빈 줄 하나를 둡니다.
+
+모든 마크다운 표(Markdown table)는 헤더, 구분선, 모든 본문 행의 열 수를 같게 유지합니다. 게시하기 전에 마크다운 원본 구조를 검증하고 렌더링된 표를 확인합니다. 표가 잘못 표시되거나 읽기 어려우면 작업이 완료되지 않은 상태로 판단합니다.
 
 ### 대화 언어와 진행 안내
 

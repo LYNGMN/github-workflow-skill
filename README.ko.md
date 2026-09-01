@@ -59,7 +59,7 @@ AI assistant는 소스 있음, 파일 설치됨, 스킬 발견됨, 현재 작업
 런타임이 스킬을 발견할 위치를 고를 때 이 요약 표를 사용하세요. 모든 바로 쓸 수 있는 명령은 정확한 설치 경로를 이미 포함하므로 경로 placeholder를 바꾸지 않습니다.
 
 | 설치 위치 | 적용 런타임 | 선택할 때 | 필수 입력 / placeholder | 바로 쓸 수 있는 예시 | 예상 결과 | 충돌/재검색/재시작 주의 |
-| --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- | --- |
 | `~/.agents/skills/managing-github-workflows` | Codex, Copilot CLI, Cursor, Antigravity IDE 및 호환 런타임 | 런타임이 지원하는 공용 Agent Skills 위치를 사용할 때 선택합니다. | 없으면 `~/.agents/skills`를 만듭니다. | `mkdir -p ~/.agents/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.agents/skills/managing-github-workflows` | 런타임이 공용 위치에서 `managing-github-workflows`를 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 런타임의 공식 발견 확인법을 사용하고 필요할 때만 재시작합니다. |
 | `~/.claude/skills/managing-github-workflows` | Claude Code | Claude Code 전용 skills 위치를 사용할 때 선택합니다. | 없으면 `~/.claude/skills`를 만듭니다. | `mkdir -p ~/.claude/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.claude/skills/managing-github-workflows` | Claude Code가 전용 위치에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Claude Code를 재검색하거나 재시작합니다. |
 | `~/.cursor/skills/managing-github-workflows` | Cursor | Cursor 전용 skills 위치를 사용할 때 선택합니다. | 없으면 `~/.cursor/skills`를 만듭니다. | `mkdir -p ~/.cursor/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.cursor/skills/managing-github-workflows` | Cursor가 전용 위치에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Cursor를 재검색하거나 재시작합니다. |

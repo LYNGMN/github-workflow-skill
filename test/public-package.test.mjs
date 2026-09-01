@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, extname, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -22,6 +22,28 @@ function expectText(text, patterns, context) {
   for (const pattern of patterns) {
     assert.match(text, pattern, `${context} must include ${pattern}`);
   }
+}
+
+function markdownPaths(directory = root, prefix = '') {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.name === '.git' || entry.name === 'node_modules') return [];
+    const absolute = join(directory, entry.name);
+    const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) return markdownPaths(absolute, path);
+    return entry.isFile() && extname(entry.name) === '.md' ? [path] : [];
+  });
+}
+
+function markdownTableCellCount(line) {
+  const content = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  let count = 1;
+  let escaped = false;
+  for (const character of content) {
+    if (character === '|' && !escaped) count += 1;
+    escaped = character === '\\' && !escaped;
+    if (character !== '\\') escaped = false;
+  }
+  return count;
 }
 
 function sectionAfter(text, heading, nextHeading = '^## ') {
@@ -105,6 +127,39 @@ function expectRequiredFormItem(form, id) {
 test('publishes the complete public skill package', () => {
   for (const path of requiredFiles) {
     assert.ok(existsSync(resolve(root, path)), `missing ${path}`);
+  }
+});
+
+test('validation workflow uses current Node 24-based GitHub Actions', () => {
+  const workflow = read('.github/workflows/validate.yml');
+  expectText(workflow, [
+    /uses:\s*actions\/checkout@v7/,
+    /uses:\s*actions\/setup-node@v7/
+  ], 'validation workflow');
+  assert.doesNotMatch(workflow, /actions\/(?:checkout|setup-node)@v4/, 'validation workflow must not use Node 20-based action majors');
+});
+
+test('all Markdown tables have matching header, delimiter, and body column counts', () => {
+  const delimiter = /^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$/;
+  for (const path of markdownPaths()) {
+    const lines = read(path).split('\n');
+    for (let index = 0; index < lines.length; index += 1) {
+      if (!delimiter.test(lines[index])) continue;
+      assert.ok(index > 0, `${path}:${index + 1} table delimiter needs a header row`);
+      const expected = markdownTableCellCount(lines[index - 1]);
+      assert.equal(
+        markdownTableCellCount(lines[index]),
+        expected,
+        `${path}:${index + 1} table delimiter must match the ${expected}-column header`
+      );
+      for (let bodyIndex = index + 1; bodyIndex < lines.length && /^\s*\|/.test(lines[bodyIndex]); bodyIndex += 1) {
+        assert.equal(
+          markdownTableCellCount(lines[bodyIndex]),
+          expected,
+          `${path}:${bodyIndex + 1} table row must match the ${expected}-column header`
+        );
+      }
+    }
   }
 });
 
@@ -598,6 +653,8 @@ test('writing guidelines preserve referents, readable source structure, and bili
     /Do not insert a source newline inside a word, product name, URL, inline code span, or Markdown link/i,
     /Do not hard-wrap prose at a fixed column/i,
     /one blank line around paragraphs, lists, tables, and code blocks/i,
+    /Markdown table[\s\S]{0,260}header[\s\S]{0,120}delimiter[\s\S]{0,120}body row[\s\S]{0,160}same number of columns/i,
+    /마크다운 표\(Markdown table\)[\s\S]{0,260}헤더[\s\S]{0,120}구분선[\s\S]{0,120}본문 행[\s\S]{0,160}열 수[\s\S]{0,80}같/i,
     /Under an existing `##` topic, use `### English` and `### 한국어`/i,
     /complete English and Korean sections/i
   ], 'writing guidelines');
