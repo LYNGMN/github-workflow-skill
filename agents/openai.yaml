@@ -1,7 +1,7 @@
 interface:
   display_name: "Managing GitHub Workflows"
   short_description: "Safe GitHub Issues, Pull Requests, review, and Merge"
-  default_prompt: "Use $managing-github-workflows to complete this GitHub workflow with clear scope, verification, privacy, and approval boundaries; match progress and status labels to the user's language and write specialized terms in Korean first with the English original in parentheses when writing Korean."
+  default_prompt: "Use $managing-github-workflows as the canonical GitHub workflow owner. Match the user's language; every response must include Status, Current stage, Remaining stages, and Next step in English or their Korean equivalents, with the next-step field last. Repeated next messages are not Merge approval. One exact-state approval authorizes Draft to Ready for review and, only after unchanged requirements pass, Squash Merge. In Korean, write specialized terms in Korean first with the English original in parentheses."
 
 policy:
   allow_implicit_invocation: true

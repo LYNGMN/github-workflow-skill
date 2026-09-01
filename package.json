@@ -4,6 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:codex-invocation": "node evaluation/run-codex-invocation.mjs"
   }
 }

@@ -12,7 +12,9 @@ const requiredFiles = [
   'references/writing-guidelines.md', 'references/github-authentication.md', 'references/github-concepts.md', 'references/github-workflow.md',
   'references/collaboration-policy.md', 'references/workflow-modes.md', 'references/delivery-contract.md',
   'agents/openai.yaml', 'evaluation/README.md', 'evaluation/scenarios.json',
+  'evaluation/run-codex-invocation.mjs',
   'evaluation/results/2026-09-01-codex.md',
+  'evaluation/results/2026-09-01-implicit-contract-codex.md',
   '.github/ISSUE_TEMPLATE/bug_report.yml',
   '.github/ISSUE_TEMPLATE/feature_request.yml',
   '.github/PULL_REQUEST_TEMPLATE.md'
@@ -213,12 +215,33 @@ test('default prompt requests reader-language progress labels and bilingual tech
   ], 'agents/openai.yaml localized default prompt');
 });
 
+test('implicit invocation keeps the canonical owner, response shape, and exact-state approval contract', () => {
+  const skill = read('SKILL.md');
+  const metadata = read('agents/openai.yaml');
+
+  expectText(skill, [
+    /canonical skill name is `managing-github-workflows`/i,
+    /GitHub-hosted Issue, Pull Request, Review, publication, or Merge[\s\S]{0,260}(?:owns|owner)/i,
+    /`managing-git-safely`[\s\S]{0,320}local Git safety[\s\S]{0,260}(?:dependency|reference)[\s\S]{0,220}(?:not|never)[\s\S]{0,160}co-owner/i,
+    /Status: <truthful overall state>[\s\S]{0,120}Current stage: <current milestone and owner>[\s\S]{0,120}Remaining stages: <remaining milestones or none>[\s\S]{0,120}Next step: <one immediate action and owner>/,
+    /상태: <사실에 맞는 전체 상태>[\s\S]{0,120}현재 단계: <현재 작업 지점과 담당자>[\s\S]{0,120}남은 단계: <남은 작업 지점 또는 없음>[\s\S]{0,120}다음 단계: <즉시 이어질 행동 하나와 담당자>/,
+    /기준 브랜치\(Base Branch\)[\s\S]{0,180}작업 브랜치\(Head Branch\)[\s\S]{0,180}헤드 SHA\(Head SHA\)[\s\S]{0,220}현재 검사\(Current checks\)[\s\S]{0,220}미해결 리뷰\(Unresolved reviews\)[\s\S]{0,220}필수 리뷰\(Required reviews\)[\s\S]{0,220}병합 가능 여부\(Mergeability\)[\s\S]{0,220}병합 방식\(Merge method\)[\s\S]{0,220}예상 스쿼시 커밋 제목\(Expected Squash Commit title\)/,
+    /repeated [`“"]?next[`”"]? messages?[\s\S]{0,220}(?:do not|never)[\s\S]{0,120}(?:Final Merge authorization|Merge approval)/i,
+    /one exact-state[\s\S]{0,160}Draft[\s\S]{0,120}Ready for review[\s\S]{0,220}unchanged[\s\S]{0,180}Squash Merge/i
+  ], 'implicit invocation entrypoint contract');
+
+  expectText(metadata, [
+    /^\s+default_prompt: ".*\$managing-github-workflows.*Status.*Current stage.*Remaining stages.*Next step.*exact-state.*Draft.*Ready for review.*Squash Merge.*"\s*$/mi
+  ], 'implicit invocation metadata prompt');
+});
+
 test('package metadata supports reproducible dry-run packing without npm publication', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.name, 'managing-github-workflows-skill');
   assert.match(pkg.version, /^\d+\.\d+\.\d+$/);
   assert.equal(pkg.private, true);
   assert.equal(pkg.license, 'MIT');
+  assert.equal(pkg.scripts['test:codex-invocation'], 'node evaluation/run-codex-invocation.mjs');
 
   const cache = mkdtempSync(join(tmpdir(), 'managing-github-workflows-pack-'));
   try {
@@ -230,12 +253,43 @@ test('package metadata supports reproducible dry-run packing without npm publica
     assert.equal(result.status, 0, `npm pack --dry-run failed: ${result.stderr}`);
     const [pack] = JSON.parse(result.stdout);
     const files = pack.files.map(({ path }) => path);
-    for (const required of ['SKILL.md', 'agents/openai.yaml', 'evaluation/scenarios.json']) {
+    for (const required of ['SKILL.md', 'agents/openai.yaml', 'evaluation/scenarios.json', 'evaluation/run-codex-invocation.mjs']) {
       assert.ok(files.includes(required), `dry-run package must contain ${required}`);
     }
   } finally {
     rmSync(cache, { recursive: true, force: true });
   }
+});
+
+test('provides a privacy-safe real Codex explicit and implicit invocation runner', () => {
+  const runner = read('evaluation/run-codex-invocation.mjs');
+  expectText(runner, [
+    /--mode[\s\S]{0,180}explicit[\s\S]{0,180}implicit[\s\S]{0,180}all/i,
+    /--reasoning[\s\S]{0,180}default[\s\S]{0,180}low/i,
+    /--ephemeral/,
+    /--sandbox[\s\S]{0,80}read-only/,
+    /--ignore-user-config/,
+    /--ignore-rules/,
+    /--with-overlap/,
+    /managing-git-safely/,
+    /isolat|격리/i,
+    /Status:[\s\S]{0,160}Current stage:[\s\S]{0,160}Remaining stages:[\s\S]{0,160}Next step:/,
+    /상태:[\s\S]{0,160}현재 단계:[\s\S]{0,160}남은 단계:[\s\S]{0,160}다음 단계:/,
+    /personal path|home directory|sensitive/i,
+    /managing-github-workflows/,
+    /const skillEntries = \[[\s\S]{0,500}'SKILL\.md'[\s\S]{0,500}'references'[\s\S]{0,500}\]/,
+    /timeout:\s*180_000/,
+    /run\.error/
+  ], 'Codex invocation runner');
+  assert.doesNotMatch(runner, /cpSync\(root,\s*skillDirectory/, 'runner must not copy untracked or unrelated repository files into the model-visible skill');
+
+  expectText(read('evaluation/README.md'), [
+    /npm run test:codex-invocation -- --mode all --reasoning default,low/,
+    /--with-overlap/,
+    /real Codex|실제 Codex/i,
+    /optional|선택/i,
+    /CI|continuous integration/i
+  ], 'real invocation instructions');
 });
 
 test('provides reusable cross-runtime behavior evaluation scenarios', () => {
@@ -250,7 +304,10 @@ test('provides reusable cross-runtime behavior evaluation scenarios', () => {
     'complete-delivery-pressure',
     'public-privacy-gate',
     'bilingual-writing-clarity',
-    'localized-progress-reporting'
+    'localized-progress-reporting',
+    'implicit-response-contract-en',
+    'implicit-response-contract-ko',
+    'coexisting-git-skill-ownership'
   ];
   assert.deepEqual(evaluation.scenarios.map(({ id }) => id), requiredIds);
   for (const scenario of evaluation.scenarios) {
@@ -270,6 +327,27 @@ test('provides reusable cross-runtime behavior evaluation scenarios', () => {
     /풀 리퀘스트\(Pull Request\)/,
     /헤드 SHA\(Head SHA\)/
   ], 'localized progress behavior scenario');
+
+  const englishImplicit = evaluation.scenarios.find(({ id }) => id === 'implicit-response-contract-en');
+  expectText(englishImplicit.expected.join(' '), [
+    /Status:[\s\S]{0,160}Current stage:[\s\S]{0,160}Remaining stages:[\s\S]{0,160}Next step:/,
+    /Next step:[\s\S]{0,100}(?:last|final)/i,
+    /exact-state[\s\S]{0,220}Draft[\s\S]{0,180}Ready for review[\s\S]{0,220}Squash Merge/i
+  ], 'English implicit invocation scenario');
+
+  const koreanImplicit = evaluation.scenarios.find(({ id }) => id === 'implicit-response-contract-ko');
+  expectText(koreanImplicit.expected.join(' '), [
+    /상태:[\s\S]{0,160}현재 단계:[\s\S]{0,160}남은 단계:[\s\S]{0,160}다음 단계:/,
+    /다음 단계:[\s\S]{0,100}마지막/,
+    /초안\(Draft\)[\s\S]{0,220}검토 준비 완료\(Ready for review\)[\s\S]{0,220}스쿼시 병합\(Squash Merge\)/
+  ], 'Korean implicit invocation scenario');
+
+  const coexistence = evaluation.scenarios.find(({ id }) => id === 'coexisting-git-skill-ownership');
+  expectText(coexistence.expected.join(' '), [
+    /managing-github-workflows[\s\S]{0,160}(?:owner|owns)/i,
+    /managing-git-safely[\s\S]{0,220}(?:local Git safety|dependency|reference)/i,
+    /canonical[\s\S]{0,120}managing-github-workflows/i
+  ], 'coexisting Git skill ownership scenario');
   expectText(read('evaluation/README.md'), [
     /RED/i, /GREEN/i, /fresh context/i, /without the skill/i, /with the skill/i,
     /record the actual response/i, /manual semantic review/i
@@ -304,6 +382,22 @@ test('records an actual RED and GREEN behavior comparison without claiming untes
       ], `${id} ${run} evidence`);
     }
   }
+});
+
+test('records the isolated implicit and explicit Codex contract regression honestly', () => {
+  const result = read('evaluation/results/2026-09-01-implicit-contract-codex.md');
+  expectText(result, [
+    /Codex CLI 0\.145\.0/,
+    /implicit[\s\S]{0,240}default[\s\S]{0,240}English[\s\S]{0,120}pass/i,
+    /implicit[\s\S]{0,700}low[\s\S]{0,240}Korean[\s\S]{0,120}pass/i,
+    /explicit[\s\S]{0,240}default[\s\S]{0,240}English[\s\S]{0,120}pass/i,
+    /explicit[\s\S]{0,700}low[\s\S]{0,240}Korean[\s\S]{0,120}pass/i,
+    /managing-git-safely[\s\S]{0,500}(?:overlap|collision|selected|선택)/i,
+    /isolat|격리/i,
+    /no GitHub mutation|GitHub mutation: None/i,
+    /Antigravity[\s\S]{0,180}(?:not executed|not run|실행하지)/i
+  ], 'final Codex invocation result');
+  assert.doesNotMatch(result, /\/Users\/|\/home\/|gh[opusr]_[A-Za-z0-9_]+|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i, 'result record must not contain personal paths, tokens, or email addresses');
 });
 
 test('Codex installation guidance uses automatic detection and supported invocation controls', () => {
@@ -964,6 +1058,20 @@ test('README examples stay inside each language Usage examples section', () => {
   expectText(koreanExamples, [
     /Issue 초안/, /여러 파일의 한 가지 목적 편집/, /Draft 게시/, /승인된 Draft에서 Squash Merge까지의 작업/
   ], 'Korean README 사용 예시');
+});
+
+test('both READMEs explain real invocation regression and overlap diagnosis', () => {
+  for (const path of ['README.md', 'README.ko.md']) {
+    const readme = read(path);
+    expectText(readme, [
+      /npm run test:codex-invocation -- --mode all --reasoning default,low/,
+      /--with-overlap/,
+      /managing-git-safely/,
+      /\$managing-github-workflows/,
+      /implicit invocation|자동 호출/i,
+      /isolat|격리/i
+    ], path);
+  }
 });
 
 test('Draft-to-Merge guidance gates exact state, required review, and recovery', () => {
