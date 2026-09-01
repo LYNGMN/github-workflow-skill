@@ -681,13 +681,21 @@ test('delivery contract uses two gates and makes unfinished work unmistakable', 
 });
 
 test('completion labels match the selected endpoint without hiding required action', () => {
+  const skill = read('SKILL.md');
   const delivery = read('references/delivery-contract.md');
   const modes = read('references/workflow-modes.md');
   const readmes = [read('README.md'), read('README.ko.md')];
+  expectText(skill, [
+    /Every intermediate and final user-facing report[\s\S]{0,220}end[\s\S]{0,120}`Next step \/ 다음 단계:`/i
+  ], 'SKILL final next-step field');
   expectText(delivery, [
     /Status: COMPLETE \/ 상태: 요청 결과 완료[\s\S]{0,260}(?:non-Merge|Merge가 아닌)[\s\S]{0,220}(?:Issue|Local|Draft Pull Request)/i,
     /Status: ACTION REQUIRED \/ 상태: 사용자 조치 필요 — 완료 아님[\s\S]{0,600}(?:Final Merge authorization|최종 Merge 승인)/i,
-    /Status: MERGED \/ 상태: 병합 완료[\s\S]{0,220}(?:verified|확인)[\s\S]{0,140}(?:default Branch|기본 브랜치)/i
+    /Status: MERGED \/ 상태: 병합 완료[\s\S]{0,220}(?:verified|확인)[\s\S]{0,140}(?:default Branch|기본 브랜치)/i,
+    /Every intermediate and final user-facing report[\s\S]{0,220}`Next step \/ 다음 단계:`[\s\S]{0,220}(?:last field|nothing follows)/i,
+    /If the requested endpoint is complete[\s\S]{0,260}No action required[\s\S]{0,220}optional next action/i,
+    /모든 중간 보고와 최종 보고[\s\S]{0,220}`Next step \/ 다음 단계:`[\s\S]{0,220}(?:마지막 필드|뒤에는 아무 내용도)/i,
+    /요청한 완료 지점[\s\S]{0,220}완료[\s\S]{0,220}사용자가 해야 할 필수 작업[\s\S]{0,120}없[\s\S]{0,180}선택 가능한 다음 행동/i
   ], 'endpoint completion labels');
   expectText(modes, [
     /Draft delivery[\s\S]{0,420}Draft URL[\s\S]{0,160}(?:endpoint|complete)[\s\S]{0,180}`Status: COMPLETE/i,

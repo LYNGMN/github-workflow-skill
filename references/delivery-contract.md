@@ -29,6 +29,8 @@ Every intermediate update must include both fields:
 - `Current stage / 현재 단계:` what is happening now.
 - `Remaining stages / 남은 단계:` what must still happen before the requested endpoint.
 
+Every intermediate and final user-facing report must end with `Next step / 다음 단계:` as its last field; nothing follows it. Name one immediate action and its owner. When current authorization lets the agent continue, state the agent's next action and continue instead of asking the user to say “next.” If the requested endpoint is complete, begin with `No action required for the completed request; optional next action:` so completion is not mistaken for a new requirement.
+
 Use exactly one overall status label:
 
 - `Status: IN PROGRESS / 상태: 진행 중 — 완료 아님`
@@ -65,6 +67,8 @@ Merge 후 Pull Request가 병합됨 상태인지, 실제 기본 브랜치에 예
 
 - `Current stage / 현재 단계:` 지금 진행하는 단계입니다.
 - `Remaining stages / 남은 단계:` 요청한 완료 지점까지 남은 단계입니다.
+
+모든 중간 보고와 최종 보고는 `Next step / 다음 단계:`를 마지막 필드로 사용하며, 그 뒤에는 아무 내용도 두지 않습니다. 즉시 이어질 행동 하나와 행동 주체를 명시합니다. 현재 승인 범위에서 에이전트가 계속할 수 있으면 사용자에게 “다음”을 요청하지 않고 에이전트의 다음 행동을 적은 뒤 계속 진행합니다. 요청한 완료 지점이 이미 완료되어 사용자가 해야 할 필수 작업이 없다면 `필수 작업 없음; 선택 가능한 다음 행동:`으로 시작하여 완료와 새로운 필수 작업을 구분합니다.
 
 전체 상태 레이블은 다음 중 정확히 하나를 사용합니다.
 

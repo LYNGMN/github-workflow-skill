@@ -52,4 +52,4 @@ Never direct Push to the Repository's actual default Branch, whatever its name; 
 
 ## Complete with evidence
 
-Before claiming completion, verify the selected endpoint with fresh evidence. Report what changed, user impact, tests and Review, Git and GitHub state, unpublished or uncommitted work, and the next handoff. When facts are unknown, list them under `Open Questions`; do not guess.
+Before claiming completion, verify the selected endpoint with fresh evidence. Report what changed, user impact, tests and Review, Git and GitHub state, and unpublished or uncommitted work. Every intermediate and final user-facing report must end with the exact final field `Next step / 다음 단계:`. Name the immediate action and its owner; when the requested endpoint is complete, distinguish no required action from an optional continuation. Put nothing after this field. When facts are unknown, list them under `Open Questions`; do not guess.
