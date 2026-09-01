@@ -1,6 +1,8 @@
 {
-  "name": "managing-git-safely-skill",
+  "name": "managing-github-workflows-skill",
+  "version": "1.0.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "test": "node --test"
   }

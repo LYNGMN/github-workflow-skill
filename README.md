@@ -1,6 +1,6 @@
 [한국어 README](README.ko.md)
 
-# Managing Git Safely
+# Managing GitHub Workflows
 
 A public, tool-neutral skill for clear GitHub workflows. It explains each decision plainly for people new to GitHub while keeping the authorization, review, and recovery safeguards experienced workflows need.
 
@@ -47,12 +47,14 @@ Do not end titles with a period. For an Issue, use at most one square-bracket Ar
 This is the easiest option across different LLMs and IDEs. Paste this prompt into the assistant that will use the skill:
 
 ```text
-Install the public `managing-git-safely` skill from https://github.com/LYNGMN/github-workflow-skill. Detect this runtime's official skill directory and use its built-in skill installer if available. If the installer is unavailable and Git is installed, use the documented Git method. If Git is unavailable, use the Download ZIP method without Git. Do not overwrite an existing destination. Verify that `<install path>/SKILL.md` exists at the skill root, confirm whether the runtime discovered or activated it, and tell me whether a rescan or restart is needed.
+Install the public `managing-github-workflows` skill from https://github.com/LYNGMN/github-workflow-skill. Detect this runtime's official skill directory and use its built-in skill installer if available. If the installer is unavailable and Git is installed, use the documented Git method. If Git is unavailable, use the Download ZIP method without Git. Do not overwrite an existing destination. Verify that `<install path>/SKILL.md` exists at the skill root, confirm whether the runtime discovered or activated it, and tell me whether a rescan or restart is needed.
 ```
 
-The assistant should report four separate states: files installed, skill discovered or activated, GitHub authenticated when needed, and currently usable in that runtime.
+The assistant should report seven separate states: source available, files installed, skill discovered, skill activated for the task, GitHub authenticated when needed, requested action authorized, and action currently usable in that runtime.
 
 Verification order: installed → discovered/activated → rescan/restart if needed.
+
+This package intentionally uses the unique skill name `managing-github-workflows`. If `managing-git-safely` is already installed, keep it. Do not overwrite, rename, or delete the existing skill; install this package beside it at the new destination.
 
 ### Install with Git
 
@@ -60,19 +62,29 @@ Keep this summary table when choosing a discovery destination. Replace no path p
 
 | Destination option | Applicable runtimes | When to choose | Required input / placeholder | Copy-ready example | Expected result | Collision/rescan/restart caution |
 | --- | --- | --- | --- | --- | --- | --- |
-| `~/.agents/skills/managing-git-safely` | Codex, Copilot CLI, Gemini CLI, Windsurf | Choose the shared agent-skills location. | Create `~/.agents/skills` if absent. | `mkdir -p ~/.agents/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.agents/skills/managing-git-safely` | The runtime can discover `managing-git-safely` from the shared location. | If the destination already exists, inspect it instead of overwriting it; rescan or restart the runtime after installation. |
-| `~/.claude/skills/managing-git-safely` | Claude Code | Choose Claude Code’s own skills location. | Create `~/.claude/skills` if absent. | `mkdir -p ~/.claude/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.claude/skills/managing-git-safely` | Claude Code can discover the skill in its own location. | If the destination already exists, inspect it instead of overwriting it; rescan or restart Claude Code after installation. |
-| `~/.cursor/skills/managing-git-safely` | Cursor | Choose Cursor’s own skills location. | Create `~/.cursor/skills` if absent. | `mkdir -p ~/.cursor/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.cursor/skills/managing-git-safely` | Cursor can discover the skill in its own location. | If the destination already exists, inspect it instead of overwriting it; rescan or restart Cursor after installation. |
-| `~/.gemini/antigravity/skills/managing-git-safely` | Antigravity | Choose Antigravity’s skills location. | Create `~/.gemini/antigravity/skills` if absent. | `mkdir -p ~/.gemini/antigravity/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.gemini/antigravity/skills/managing-git-safely` | Antigravity can discover the skill in its own location. | If the destination already exists, inspect it instead of overwriting it; rescan or restart Antigravity after installation. |
+| `~/.agents/skills/managing-github-workflows` | Codex, Copilot CLI, Cursor, Antigravity IDE, and compatible runtimes | Choose the shared Agent Skills location when the runtime supports it. | Create `~/.agents/skills` if absent. | `mkdir -p ~/.agents/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.agents/skills/managing-github-workflows` | The runtime can discover `managing-github-workflows` from the shared location. | If the destination already exists, inspect it instead of overwriting it; use the runtime's documented discovery check and restart only when needed. |
+| `~/.claude/skills/managing-github-workflows` | Claude Code | Choose Claude Code’s own skills location. | Create `~/.claude/skills` if absent. | `mkdir -p ~/.claude/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.claude/skills/managing-github-workflows` | Claude Code can discover the skill in its own location. | If the destination already exists, inspect it instead of overwriting it; rescan or restart Claude Code after installation. |
+| `~/.cursor/skills/managing-github-workflows` | Cursor | Choose Cursor’s own skills location. | Create `~/.cursor/skills` if absent. | `mkdir -p ~/.cursor/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.cursor/skills/managing-github-workflows` | Cursor can discover the skill in its own location. | If the destination already exists, inspect it instead of overwriting it; rescan or restart Cursor after installation. |
+| `~/.gemini/config/skills/managing-github-workflows` | Antigravity products | Choose Antigravity’s current global skills location. | Create `~/.gemini/config/skills` if absent. | `mkdir -p ~/.gemini/config/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.gemini/config/skills/managing-github-workflows` | Antigravity products can discover the skill globally. | If the destination already exists, inspect it instead of overwriting it; use the Antigravity skill manager or restart after installation. |
+| `~/.gemini/antigravity-cli/skills/managing-github-workflows` | Antigravity CLI compatibility | Choose this compatibility location when the CLI does not discover the global or shared location. | Create `~/.gemini/antigravity-cli/skills` if absent. | `mkdir -p ~/.gemini/antigravity-cli/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.gemini/antigravity-cli/skills/managing-github-workflows` | Antigravity CLI can discover the same uniquely named skill. | Use one active copy per runtime to avoid stale duplicates; reload or restart the CLI after installation. |
 
-Installed means the files are present. Activated/discovered means the runtime has found the skill. Authenticated means any GitHub account connection is signed in. Usable means this current runtime exposes the needed capability and the user has authorized the action; these are separate states.
+Source available means the repository or ZIP exists. Installed means the files are in a supported directory. Discovered means the runtime indexed the metadata. Activated means the skill owns the current task. Authenticated means the GitHub account connection works. Authorized means the user approved the specific external action. Usable means the current runtime exposes every capability required now. These states are separate.
+
+### Verify discovery in each runtime
+
+- Agent Skills standard: the parent folder and frontmatter `name` must both be `managing-github-workflows`; see the [Agent Skills specification](https://agentskills.io/specification).
+- Codex: Codex detects newly installed skills automatically. Run `/skills` or type `$managing-github-workflows` to select the skill and confirm that **Managing GitHub Workflows** is separate from any existing Git safety skill. If the skill does not appear, restart Codex. The included `agents/openai.yaml` supplies display metadata; see the [official OpenAI Codex skills documentation](https://developers.openai.com/codex/skills).
+- Copilot CLI: run `/skills reload`, then `/skills info managing-github-workflows`; see the [Copilot CLI command reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference).
+- Cursor: restart after creating a new top-level skill folder if it is not found, then explicitly invoke `/managing-github-workflows`; see [Cursor Agent Skills](https://prod.cursor.com/docs/skills).
+- Claude Code: confirm `/managing-github-workflows` after installation. If a newly created top-level directory is not visible, restart the session; see [Claude Code skills](https://code.claude.com/docs/en/slash-commands).
+- Antigravity: open the skill manager or `/skills` list and confirm the unique name. The global and CLI compatibility paths follow Google's [Antigravity Skills guide](https://codelabs.developers.google.com/getting-started-with-antigravity-skills?hl=en).
 
 ### Install without Git
 
 1. Open [the public repository](https://github.com/LYNGMN/github-workflow-skill) and choose **Code → Download ZIP**. This option works without Git.
 2. Extract the ZIP and choose the destination from the table above. If the destination already exists, stop and inspect it; do not overwrite it.
 3. Copy the extracted repository contents so the final file is exactly `<install path>/SKILL.md`. Avoid a nested repository folder such as `<install path>/github-workflow-skill-main/SKILL.md`, because many runtimes will not discover the skill there.
-4. Rescan skills or restart the runtime. Ask it to list or identify `managing-git-safely`, then distinguish installed, discovered/activated, authenticated, and usable states.
+4. Use the runtime-specific discovery check above. Restart only when that runtime documents restart as its fallback. Confirm `managing-github-workflows`, then distinguish source available, installed, discovered, activated, authenticated, authorized, and usable states.
 
 ## GitHub CLI authentication (optional)
 
@@ -104,3 +116,5 @@ Update the README means update every maintained language README unless the reque
 This package is available under the [MIT License](LICENSE). MIT allows use, copying, modification, distribution, sublicensing, and sale, while preserving the copyright and license notice; it provides the software without warranty.
 
 Run `npm test` to verify the public package contracts. The GitHub workflow also runs the same check through [validate.yml](.github/workflows/validate.yml).
+
+Run the behavior scenarios in [evaluation/README.md](evaluation/README.md) to compare a fresh context without the skill (RED) with a fresh context using the skill (GREEN). This checks decisions under pressure rather than only checking document keywords.

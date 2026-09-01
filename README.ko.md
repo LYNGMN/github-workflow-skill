@@ -1,6 +1,6 @@
 [English README](README.md)
 
-# Managing Git Safely
+# Managing GitHub Workflows
 
 GitHub 작업을 안전하고 명확하게 진행하기 위한 공개형·도구 중립 스킬입니다. GitHub 초보도 각 결정을 이해할 수 있게 설명하고, 숙련된 작업 흐름에 필요한 승인·리뷰·복구 안전장치도 지킵니다.
 
@@ -45,12 +45,14 @@ README, Issue, Pull Request 초안을 쓰기 전에는 [Writing guidelines](refe
 서로 다른 LLM과 IDE에서 가장 쉽게 사용할 수 있는 방법입니다. 스킬을 사용할 AI assistant에게 다음 문장을 그대로 전달하세요.
 
 ```text
-공개 저장소 https://github.com/LYNGMN/github-workflow-skill 에서 `managing-git-safely` 스킬을 설치해 주세요. 현재 런타임의 공식 스킬 경로를 확인하고 내장 스킬 설치 기능이 있으면 우선 사용하세요. 내장 installer가 없고 Git이 설치되어 있으면 문서의 Git 설치법을 사용하세요. Git도 없으면 Git 없이 Download ZIP 방식을 사용하세요. 기존 설치 위치를 덮어쓰지 말고, 스킬 루트에 `<install path>/SKILL.md`가 있는지 확인하세요. 런타임이 스킬을 발견하거나 활성화했는지, 재검색 또는 재시작이 필요한지도 알려 주세요.
+공개 저장소 https://github.com/LYNGMN/github-workflow-skill 에서 `managing-github-workflows` 스킬을 설치해 주세요. 현재 런타임의 공식 스킬 경로를 확인하고 내장 스킬 설치 기능이 있으면 우선 사용하세요. 내장 installer가 없고 Git이 설치되어 있으면 문서의 Git 설치법을 사용하세요. Git도 없으면 Git 없이 Download ZIP 방식을 사용하세요. 기존 설치 위치를 덮어쓰지 말고, 스킬 루트에 `<install path>/SKILL.md`가 있는지 확인하세요. 런타임이 스킬을 발견하거나 활성화했는지, 재검색 또는 재시작이 필요한지도 알려 주세요.
 ```
 
-AI assistant는 파일 설치됨, 스킬 발견됨 또는 활성화됨, 필요할 때 GitHub 인증됨, 현재 런타임에서 사용 가능함을 서로 다른 상태로 보고해야 합니다.
+AI assistant는 소스 있음, 파일 설치됨, 스킬 발견됨, 현재 작업에 활성화됨, 필요할 때 GitHub 인증됨, 요청 행동 승인됨, 현재 런타임에서 사용 가능함을 서로 다른 상태로 보고해야 합니다.
 
 확인 순서: 설치 → 발견/활성 → 필요하면 재검색/재시작입니다.
+
+이 패키지는 충돌을 피하려고 고유한 스킬 이름 `managing-github-workflows`를 사용합니다. `managing-git-safely`가 이미 설치되어 있다면 그대로 보존하세요. 기존 스킬을 덮어쓰거나 이름을 바꾸거나 삭제하지 말고 새 설치 위치에 나란히 설치합니다.
 
 ### Git으로 설치
 
@@ -58,19 +60,29 @@ AI assistant는 파일 설치됨, 스킬 발견됨 또는 활성화됨, 필요�
 
 | 설치 위치 | 적용 런타임 | 선택할 때 | 필수 입력 / placeholder | 바로 쓸 수 있는 예시 | 예상 결과 | 충돌/재검색/재시작 주의 |
 | --- | --- | --- | --- | --- | --- |
-| `~/.agents/skills/managing-git-safely` | Codex, Copilot CLI, Gemini CLI, Windsurf | 공용 agent-skills 위치를 사용할 때 선택합니다. | 없으면 `~/.agents/skills`를 만듭니다. | `mkdir -p ~/.agents/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.agents/skills/managing-git-safely` | 런타임이 공용 위치에서 `managing-git-safely`를 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 런타임을 재검색하거나 재시작합니다. |
-| `~/.claude/skills/managing-git-safely` | Claude Code | Claude Code 전용 skills 위치를 사용할 때 선택합니다. | 없으면 `~/.claude/skills`를 만듭니다. | `mkdir -p ~/.claude/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.claude/skills/managing-git-safely` | Claude Code가 전용 위치에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Claude Code를 재검색하거나 재시작합니다. |
-| `~/.cursor/skills/managing-git-safely` | Cursor | Cursor 전용 skills 위치를 사용할 때 선택합니다. | 없으면 `~/.cursor/skills`를 만듭니다. | `mkdir -p ~/.cursor/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.cursor/skills/managing-git-safely` | Cursor가 전용 위치에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Cursor를 재검색하거나 재시작합니다. |
-| `~/.gemini/antigravity/skills/managing-git-safely` | Antigravity | Antigravity skills 위치를 사용할 때 선택합니다. | 없으면 `~/.gemini/antigravity/skills`를 만듭니다. | `mkdir -p ~/.gemini/antigravity/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.gemini/antigravity/skills/managing-git-safely` | Antigravity가 skills 위치에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Antigravity를 재검색하거나 재시작합니다. |
+| `~/.agents/skills/managing-github-workflows` | Codex, Copilot CLI, Cursor, Antigravity IDE 및 호환 런타임 | 런타임이 지원하는 공용 Agent Skills 위치를 사용할 때 선택합니다. | 없으면 `~/.agents/skills`를 만듭니다. | `mkdir -p ~/.agents/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.agents/skills/managing-github-workflows` | 런타임이 공용 위치에서 `managing-github-workflows`를 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 런타임의 공식 발견 확인법을 사용하고 필요할 때만 재시작합니다. |
+| `~/.claude/skills/managing-github-workflows` | Claude Code | Claude Code 전용 skills 위치를 사용할 때 선택합니다. | 없으면 `~/.claude/skills`를 만듭니다. | `mkdir -p ~/.claude/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.claude/skills/managing-github-workflows` | Claude Code가 전용 위치에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Claude Code를 재검색하거나 재시작합니다. |
+| `~/.cursor/skills/managing-github-workflows` | Cursor | Cursor 전용 skills 위치를 사용할 때 선택합니다. | 없으면 `~/.cursor/skills`를 만듭니다. | `mkdir -p ~/.cursor/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.cursor/skills/managing-github-workflows` | Cursor가 전용 위치에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Cursor를 재검색하거나 재시작합니다. |
+| `~/.gemini/config/skills/managing-github-workflows` | Antigravity 제품 | Antigravity의 현재 전역 skills 위치를 사용할 때 선택합니다. | 없으면 `~/.gemini/config/skills`를 만듭니다. | `mkdir -p ~/.gemini/config/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.gemini/config/skills/managing-github-workflows` | Antigravity 제품이 전역에서 스킬을 발견할 수 있습니다. | 설치 위치가 이미 있으면 덮어쓰지 말고 먼저 확인하세요. 설치 뒤에는 Antigravity skill manager에서 다시 찾거나 재시작합니다. |
+| `~/.gemini/antigravity-cli/skills/managing-github-workflows` | Antigravity CLI 호환 경로 | CLI가 전역 또는 공용 위치를 발견하지 못할 때 이 호환 위치를 선택합니다. | 없으면 `~/.gemini/antigravity-cli/skills`를 만듭니다. | `mkdir -p ~/.gemini/antigravity-cli/skills && git clone https://github.com/LYNGMN/github-workflow-skill.git ~/.gemini/antigravity-cli/skills/managing-github-workflows` | Antigravity CLI가 같은 고유 이름의 스킬을 발견할 수 있습니다. | 오래된 복사본 충돌을 피하도록 런타임마다 활성 복사본 하나만 두고 설치 뒤 CLI를 재검색하거나 재시작합니다. |
 
-installed(설치됨)는 파일이 존재하는 상태, activated/discovered(활성화됨/발견됨)는 런타임이 스킬을 찾은 상태, authenticated(인증됨)는 GitHub 계정 연결이 로그인된 상태, usable(현재 사용 가능)은 필요한 기능이 노출되고 사용자가 행동을 승인한 상태입니다. 네 상태는 서로 다릅니다.
+source available(소스 있음)는 저장소나 ZIP이 있는 상태, installed(설치됨)는 지원 경로에 파일이 있는 상태, discovered(발견됨)는 런타임이 메타데이터를 색인한 상태, activated(활성화됨)는 현재 작업을 스킬이 맡은 상태입니다. authenticated(인증됨)는 GitHub 계정 연결이 작동하는 상태, authorized(승인됨)는 사용자가 특정 외부 행동을 승인한 상태, usable(현재 사용 가능)은 지금 필요한 기능이 런타임에 모두 노출된 상태입니다. 이 상태들은 서로 다릅니다.
+
+### 런타임별 발견 확인
+
+- Agent Skills 표준: 상위 폴더 이름과 frontmatter의 `name`이 모두 `managing-github-workflows`여야 합니다. [Agent Skills specification(Agent Skills 명세)](https://agentskills.io/specification)을 확인하세요.
+- Codex: Codex는 새로 설치한 스킬을 자동으로 감지합니다. `/skills`를 실행하거나 `$managing-github-workflows`를 입력해 스킬을 선택하고, **Managing GitHub Workflows**가 기존 Git 안전 스킬과 별도로 표시되는지 확인합니다. 스킬이 보이지 않으면 Codex를 재시작합니다. 포함된 `agents/openai.yaml`은 표시 메타데이터를 제공합니다. [OpenAI 공식 Codex skills 문서](https://developers.openai.com/codex/skills)를 확인하세요.
+- Copilot CLI: `/skills reload`를 실행한 뒤 `/skills info managing-github-workflows`로 확인합니다. [Copilot CLI command reference(Copilot CLI 명령 참고)](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference)를 확인하세요.
+- Cursor: 새 최상위 스킬 폴더가 보이지 않으면 재시작하고 `/managing-github-workflows`로 명시 호출합니다. [Cursor Agent Skills](https://prod.cursor.com/docs/skills)를 확인하세요.
+- Claude Code: 설치 뒤 `/managing-github-workflows`를 확인합니다. 새 최상위 폴더가 보이지 않으면 세션을 재시작합니다. [Claude Code skills](https://code.claude.com/docs/en/slash-commands)를 확인하세요.
+- Antigravity: skill manager 또는 `/skills` 목록에서 고유 이름을 확인합니다. 전역 경로와 CLI 호환 경로는 Google의 [Antigravity Skills guide(Antigravity Skills 안내)](https://codelabs.developers.google.com/getting-started-with-antigravity-skills?hl=en)를 따릅니다.
 
 ### Git 없이 설치
 
 1. [공개 저장소](https://github.com/LYNGMN/github-workflow-skill)를 열고 **Code → Download ZIP(ZIP 다운로드)** 을 선택합니다. Git 없이 설치할 수 있는 방법입니다.
 2. ZIP을 풀고 위 표에서 설치 위치를 고릅니다. 설치 위치가 이미 있으면 멈추고 내용을 확인하며 덮어쓰지 않습니다.
 3. 압축을 푼 저장소의 내용물을 복사해 최종 파일이 정확히 `<install path>/SKILL.md`가 되게 합니다. `<install path>/github-workflow-skill-main/SKILL.md` 같은 중첩된 저장소 폴더는 많은 런타임이 스킬을 발견하지 못하므로 피합니다.
-4. 스킬을 재검색하거나 런타임을 재시작합니다. `managing-git-safely`를 목록에서 확인하고 설치됨, 발견됨/활성화됨, 인증됨, 사용 가능함을 구분합니다.
+4. 위의 런타임별 발견 확인법을 사용합니다. 해당 런타임 문서가 fallback으로 안내할 때만 재시작합니다. `managing-github-workflows`를 확인하고 소스 있음, 설치됨, 발견됨, 활성화됨, 인증됨, 승인됨, 사용 가능함을 구분합니다.
 
 ## GitHub CLI 인증(선택 사항)
 
@@ -102,3 +114,5 @@ installed(설치됨)는 파일이 존재하는 상태, activated/discovered(활�
 이 패키지는 [MIT License](LICENSE)로 제공됩니다. MIT는 사용, 복사, 수정, 배포, 재라이선스, 판매를 허용하지만 저작권·라이선스 고지문을 유지해야 하며, 품질이나 특정 목적 적합성을 보증하지 않는 조건으로 보증 없이 제공됩니다.
 
 공개 패키지 계약은 `npm test`로 확인합니다. GitHub에서는 [validate.yml](.github/workflows/validate.yml)도 같은 검사를 실행합니다.
+
+[evaluation/README.md](evaluation/README.md)의 행동 시나리오를 실행해 스킬이 없는 새 컨텍스트(RED)와 스킬을 사용하는 새 컨텍스트(GREEN)를 비교합니다. 이 검사는 문서 키워드의 존재만이 아니라 압박 상황의 판단을 확인합니다.

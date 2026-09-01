@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, extname, resolve } from 'node:path';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, extname, join, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 const root = resolve(import.meta.dirname, '..');
@@ -9,6 +11,8 @@ const requiredFiles = [
   'SKILL.md', 'README.md', 'README.ko.md', 'CONTRIBUTING.md', 'LICENSE',
   'references/writing-guidelines.md', 'references/github-authentication.md', 'references/github-concepts.md', 'references/github-workflow.md',
   'references/collaboration-policy.md', 'references/workflow-modes.md', 'references/delivery-contract.md',
+  'agents/openai.yaml', 'evaluation/README.md', 'evaluation/scenarios.json',
+  'evaluation/results/2026-09-01-codex.md',
   '.github/ISSUE_TEMPLATE/bug_report.yml',
   '.github/ISSUE_TEMPLATE/feature_request.yml',
   '.github/PULL_REQUEST_TEMPLATE.md'
@@ -106,11 +110,143 @@ test('publishes the complete public skill package', () => {
 
 test('SKILL frontmatter names a discriminating GitHub workflow use case', () => {
   const skill = read('SKILL.md');
-  assert.match(skill, /^---\s*\nname: managing-git-safely\s*\ndescription: Use when .*\b(?:GitHub|Git|Pull Request|Issue|Merge)\b/im);
+  assert.match(skill, /^---\s*\nname: managing-github-workflows\s*\ndescription: Use when .*\b(?:GitHub|Git|Pull Request|Issue|Merge)\b/im);
   expectText(skill, [
     /github-concepts\.md/i, /github-workflow\.md/i, /collaboration-policy\.md/i,
     /Tool availability does not grant permission/i
   ], 'SKILL.md');
+});
+
+test('uses a unique portable skill identity that matches every install folder', () => {
+  const skill = read('SKILL.md');
+  const readmes = [read('README.md'), read('README.ko.md')];
+  assert.match(skill, /^---\s*\nname: managing-github-workflows\s*$/m);
+  assert.doesNotMatch(skill, /^name: managing-git-safely\s*$/m);
+
+  const destinations = [
+    '~/.agents/skills/managing-github-workflows',
+    '~/.claude/skills/managing-github-workflows',
+    '~/.cursor/skills/managing-github-workflows',
+    '~/.gemini/config/skills/managing-github-workflows',
+    '~/.gemini/antigravity-cli/skills/managing-github-workflows'
+  ];
+  for (const readme of readmes) {
+    for (const destination of destinations) {
+      assert.match(readme, new RegExp(destination.replaceAll('/', '\\/')), `README must install the unique skill at ${destination}`);
+    }
+    assert.doesNotMatch(readme, /skills\/managing-git-safely/, 'README must not reuse the conflicting install folder');
+    assert.doesNotMatch(readme, /~\/\.gemini\/antigravity\/skills/, 'README must not use the superseded Antigravity path');
+  }
+});
+
+test('ships Codex UI metadata for discoverable explicit and implicit invocation', () => {
+  const metadata = read('agents/openai.yaml');
+  expectText(metadata, [
+    /^interface:\s*$/m,
+    /^\s+display_name: "Managing GitHub Workflows"\s*$/m,
+    /^\s+short_description: ".{25,64}"\s*$/m,
+    /^\s+default_prompt: ".*\$managing-github-workflows.*"\s*$/m,
+    /^policy:\s*$/m,
+    /^\s+allow_implicit_invocation: true\s*$/m
+  ], 'agents/openai.yaml');
+});
+
+test('package metadata supports reproducible dry-run packing without npm publication', () => {
+  const pkg = JSON.parse(read('package.json'));
+  assert.equal(pkg.name, 'managing-github-workflows-skill');
+  assert.match(pkg.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(pkg.private, true);
+  assert.equal(pkg.license, 'MIT');
+
+  const cache = mkdtempSync(join(tmpdir(), 'managing-github-workflows-pack-'));
+  try {
+    const result = spawnSync(
+      process.platform === 'win32' ? 'npm.cmd' : 'npm',
+      ['pack', '--dry-run', '--json', '--ignore-scripts', '--cache', cache],
+      { cwd: root, encoding: 'utf8' }
+    );
+    assert.equal(result.status, 0, `npm pack --dry-run failed: ${result.stderr}`);
+    const [pack] = JSON.parse(result.stdout);
+    const files = pack.files.map(({ path }) => path);
+    for (const required of ['SKILL.md', 'agents/openai.yaml', 'evaluation/scenarios.json']) {
+      assert.ok(files.includes(required), `dry-run package must contain ${required}`);
+    }
+  } finally {
+    rmSync(cache, { recursive: true, force: true });
+  }
+});
+
+test('provides reusable cross-runtime behavior evaluation scenarios', () => {
+  const evaluation = JSON.parse(read('evaluation/scenarios.json'));
+  assert.equal(evaluation.schemaVersion, 1);
+  assert.equal(evaluation.skill, 'managing-github-workflows');
+  assert.ok(Array.isArray(evaluation.scenarios));
+  const requiredIds = [
+    'unique-installation',
+    'selective-workflow',
+    'split-independent-outcomes',
+    'complete-delivery-pressure',
+    'public-privacy-gate',
+    'bilingual-writing-clarity'
+  ];
+  assert.deepEqual(evaluation.scenarios.map(({ id }) => id), requiredIds);
+  for (const scenario of evaluation.scenarios) {
+    assert.match(scenario.prompt, /\S/);
+    assert.ok(scenario.pressures.length >= 3, `${scenario.id} needs at least three realistic pressures`);
+    assert.ok(scenario.expected.length >= 2, `${scenario.id} needs observable expected behavior`);
+    assert.ok(scenario.forbidden.length >= 1, `${scenario.id} needs a forbidden behavior`);
+  }
+  const installation = evaluation.scenarios.find(({ id }) => id === 'unique-installation');
+  const installationContract = installation.expected.join(' ');
+  for (const state of ['source', 'installed', 'discovered', 'activated', 'authenticated', 'authorized', 'usable']) {
+    assert.match(installationContract, new RegExp(state, 'i'), `unique-installation must require the ${state} state`);
+  }
+  expectText(read('evaluation/README.md'), [
+    /RED/i, /GREEN/i, /fresh context/i, /without the skill/i, /with the skill/i,
+    /record the actual response/i, /manual semantic review/i
+  ], 'behavior evaluation guide');
+});
+
+test('records an actual RED and GREEN behavior comparison without claiming untested runtimes', () => {
+  const result = read('evaluation/results/2026-09-01-codex.md');
+  expectText(result, [
+    /unique-installation/i,
+    /split-independent-outcomes/i,
+    /complete-delivery-pressure/i,
+    /RED[\s\S]{0,500}GREEN/i,
+    /fresh Codex process[\s\S]{0,220}managing-github-workflows/i,
+    /Antigravity[\s\S]{0,180}(?:not executed|not run|실행하지)/i,
+    /no GitHub mutation/i
+  ], 'behavior result');
+  for (const id of ['unique-installation', 'complete-delivery-pressure', 'split-independent-outcomes']) {
+    const section = topLevelSection(result, id);
+    for (const run of ['RED', 'GREEN']) {
+      const evidence = subsection(section, run);
+      expectText(evidence, [
+        /Runtime:/i,
+        /Model:/i,
+        /Configuration:/i,
+        /Skill discovery:/i,
+        /Invocation:/i,
+        /Expected checks:/i,
+        /Forbidden checks:/i,
+        /Evidence excerpt:/i,
+        /Verdict:/i
+      ], `${id} ${run} evidence`);
+    }
+  }
+});
+
+test('Codex installation guidance uses automatic detection and supported invocation controls', () => {
+  for (const path of ['README.md', 'README.ko.md']) {
+    const readme = read(path);
+    expectText(readme, [
+      /Codex[\s\S]{0,280}(?:detects?[\s\S]{0,120}automatically|자동[\s\S]{0,120}감지)/i,
+      /Codex[\s\S]{0,420}`\/skills`[\s\S]{0,180}`\$managing-github-workflows`/i,
+      /Codex[\s\S]{0,520}(?:does not appear|보이지 않)[\s\S]{0,140}(?:restart|재시작)/i,
+      /https:\/\/developers\.openai\.com\/codex\/skills/i
+    ], `${path} Codex discovery guidance`);
+  }
 });
 
 test('SKILL requires semantic-parity updates for every maintained README language', () => {
@@ -131,10 +267,11 @@ test('bilingual READMEs link to one another and synchronize unqualified README u
     expectText(text, [
       /Update the README[\s\S]{0,220}(?:all|every|모든)[\s\S]{0,100}(?:language|언어)/i,
       /new to GitHub[\s\S]{0,160}experienced|GitHub 초보[\s\S]{0,160}숙련/i,
-      /~\/.agents\/skills\/managing-git-safely/i,
-      /~\/.claude\/skills\/managing-git-safely/i,
-      /~\/.cursor\/skills\/managing-git-safely/i,
-      /~\/.gemini\/antigravity\/skills\/managing-git-safely/i,
+      /~\/.agents\/skills\/managing-github-workflows/i,
+      /~\/.claude\/skills\/managing-github-workflows/i,
+      /~\/.cursor\/skills\/managing-github-workflows/i,
+      /~\/.gemini\/config\/skills\/managing-github-workflows/i,
+      /~\/.gemini\/antigravity-cli\/skills\/managing-github-workflows/i,
       /installed[\s\S]{0,220}(?:activated|discovered)[\s\S]{0,220}authenticated[\s\S]{0,220}usable/i,
       /LICENSE/i
     ], 'README');
@@ -145,10 +282,11 @@ test('both READMEs provide concrete clone commands and natural Korean guidance',
   const english = read('README.md');
   const korean = read('README.ko.md');
   const destinations = [
-    '~/.agents/skills/managing-git-safely',
-    '~/.claude/skills/managing-git-safely',
-    '~/.cursor/skills/managing-git-safely',
-    '~/.gemini/antigravity/skills/managing-git-safely'
+    '~/.agents/skills/managing-github-workflows',
+    '~/.claude/skills/managing-github-workflows',
+    '~/.cursor/skills/managing-github-workflows',
+    '~/.gemini/config/skills/managing-github-workflows',
+    '~/.gemini/antigravity-cli/skills/managing-github-workflows'
   ];
   for (const text of [english, korean]) {
     for (const destination of destinations) {
@@ -467,8 +605,9 @@ test('writing guidelines preserve referents, readable source structure, and bili
 test('READMEs keep equivalent examples and complete installation options', () => {
   const readmes = [read('README.md'), read('README.ko.md')];
   const destinations = [
-    '~/.agents/skills/managing-git-safely', '~/.claude/skills/managing-git-safely',
-    '~/.cursor/skills/managing-git-safely', '~/.gemini/antigravity/skills/managing-git-safely'
+    '~/.agents/skills/managing-github-workflows', '~/.claude/skills/managing-github-workflows',
+    '~/.cursor/skills/managing-github-workflows', '~/.gemini/config/skills/managing-github-workflows',
+    '~/.gemini/antigravity-cli/skills/managing-github-workflows'
   ];
   for (const readme of readmes) {
     expectText(readme, [/Issue drafting|Issue 초안/i, /multiple files[\s\S]{0,100}one purpose|여러 파일[\s\S]{0,100}한 가지 목적/i, /Draft Pull Request/i, /Squash Merge/i]);
@@ -569,7 +708,7 @@ test('both READMEs support AI-assisted, Git, and no-Git installation', () => {
     expectText(readme, [
       /Ask your AI assistant|AI에게 설치 요청/i,
       /https:\/\/github\.com\/LYNGMN\/github-workflow-skill/i,
-      /managing-git-safely/i,
+      /managing-github-workflows/i,
       /built-in skill installer|내장 스킬 설치 기능/i,
       /do not overwrite|덮어쓰지 않/i,
       /Download ZIP|ZIP 다운로드/i,

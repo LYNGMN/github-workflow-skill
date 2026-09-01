@@ -1,0 +1,7 @@
+interface:
+  display_name: "Managing GitHub Workflows"
+  short_description: "Safe GitHub Issues, Pull Requests, review, and Merge"
+  default_prompt: "Use $managing-github-workflows to complete this GitHub workflow with clear scope, verification, privacy, and approval boundaries."
+
+policy:
+  allow_implicit_invocation: true

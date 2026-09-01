@@ -1,4 +1,4 @@
-# Contributing to Managing Git Safely
+# Contributing to Managing GitHub Workflows
 
 ## English
 
