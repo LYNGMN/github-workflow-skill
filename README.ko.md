@@ -116,3 +116,13 @@ AI assistant는 소스 있음, 파일 설치됨, 스킬 발견됨, 현재 작업
 공개 패키지 계약은 `npm test`로 확인합니다. GitHub에서는 [validate.yml](.github/workflows/validate.yml)도 같은 검사를 실행합니다.
 
 [evaluation/README.md](evaluation/README.md)의 행동 시나리오를 실행해 스킬이 없는 새 컨텍스트(RED)와 스킬을 사용하는 새 컨텍스트(GREEN)를 비교합니다. 이 검사는 문서 키워드의 존재만이 아니라 압박 상황의 판단을 확인합니다.
+
+### 실제 호출 회귀 시험
+
+Codex CLI와 모델 인증을 사용할 수 있으면 격리된 읽기 전용 환경에서 선택 사항인 명시적 호출(Explicit invocation) 및 자동 호출(Implicit invocation) 회귀 시험을 실행합니다.
+
+```bash
+npm run test:codex-invocation -- --mode all --reasoning default,low
+```
+
+기본 시험은 이 패키지를 전역에 설치된 중복 사본과 범위가 더 넓은 기존 `managing-git-safely` 스킬로부터 격리합니다. 겹치는 스킬이 보이는 실제 자동 선택을 진단하려면 `--with-overlap`을 추가합니다. 겹침 진단에서 다른 스킬이 선택되면 안정적인 명시적 호출을 위해 `$managing-github-workflows`를 사용하고, 자동 호출에 의존하기 전에 충돌하는 스킬의 발견 설명 범위를 좁혀야 합니다. 안전 범위와 결과 기록은 [행동 평가](evaluation/README.md)를 확인하세요.

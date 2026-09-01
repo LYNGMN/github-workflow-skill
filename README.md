@@ -118,3 +118,13 @@ This package is available under the [MIT License](LICENSE). MIT allows use, copy
 Run `npm test` to verify the public package contracts. The GitHub workflow also runs the same check through [validate.yml](.github/workflows/validate.yml).
 
 Run the behavior scenarios in [evaluation/README.md](evaluation/README.md) to compare a fresh context without the skill (RED) with a fresh context using the skill (GREEN). This checks decisions under pressure rather than only checking document keywords.
+
+### Real invocation regression
+
+When Codex CLI and model authentication are available, run the optional explicit and implicit invocation regression in an isolated read-only environment:
+
+```bash
+npm run test:codex-invocation -- --mode all --reasoning default,low
+```
+
+The default test isolates this package from globally installed duplicates and the broader legacy `managing-git-safely` skill. To diagnose actual automatic selection with that overlapping skill visible, add `--with-overlap`. If the overlap diagnostic selects the other skill, use `$managing-github-workflows` for reliable explicit invocation and narrow the conflicting skill's discovery description before depending on implicit invocation. See [Behavior Evaluation](evaluation/README.md) for the safety boundary and result records.

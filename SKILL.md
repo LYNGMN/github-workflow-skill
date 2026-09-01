@@ -1,6 +1,6 @@
 ---
 name: managing-github-workflows
-description: Use when a requested outcome involves a GitHub Issue, Branch, Commit, Push, Pull Request, Review, repository publication, GitHub CLI authentication, or Squash Merge.
+description: Use when a requested outcome creates, reviews, publishes, or merges GitHub-hosted work through an Issue, Pull Request, Review, browser authentication, Ready for review, or Squash Merge; also when a Korean request mentions GitHub 이슈, 풀 리퀘스트, 리뷰, 초안 해제, 공개, or 병합.
 license: MIT
 compatibility: Requires an Agent Skills-compatible runtime. Git and GitHub tools are optional and depend on the requested action.
 ---
@@ -8,6 +8,10 @@ compatibility: Requires an Agent Skills-compatible runtime. Git and GitHub tools
 # Managing GitHub Workflows
 
 Turn a GitHub request into the smallest safe, verifiable workflow. Match conversational guidance to the user's language. In Korean conversation, explain specialized GitHub and developer terms with the Korean term first and the English original in parentheses on first occurrence. Tool availability does not grant permission to publish, Merge, delete, force-update, or clean work. GitHub authentication does not grant that permission either.
+
+## Keep one canonical owner
+
+The canonical skill name is `managing-github-workflows`; reproduce it exactly when naming the selected skill. This skill owns any requested outcome involving a GitHub-hosted Issue, Pull Request, Review, publication, or Merge. If `managing-git-safely` also matches, keep this skill as the single workflow owner and use `managing-git-safely` only as a local Git safety dependency or reference, not as a co-owner. A request limited to local Git concepts or local repository recovery may instead hand off ownership to `managing-git-safely`.
 
 ## Select the requested outcome
 
@@ -24,7 +28,25 @@ Report the overall state in the user's language. An English report uses `Status:
 
 ## Communicate progress in the user's language
 
-Match the user-facing prose and progress-field labels to the language of the current user conversation. Do not combine English and Korean in one field label.
+Explicit and implicit invocation use the same response contract. Match the user-facing prose and progress-field labels to the language of the current user conversation. Do not combine English and Korean in one field label. Every user-facing response has exactly one truthful overall-state field followed by the three progress fields, each on its own line. Explanatory paragraphs may appear between fields, but the next-step field remains the final non-empty line.
+
+English response shape:
+
+```text
+Status: <truthful overall state>
+Current stage: <current milestone and owner>
+Remaining stages: <remaining milestones or none>
+Next step: <one immediate action and owner>
+```
+
+Korean response shape:
+
+```text
+상태: <사실에 맞는 전체 상태>
+현재 단계: <현재 작업 지점과 담당자>
+남은 단계: <남은 작업 지점 또는 없음>
+다음 단계: <즉시 이어질 행동 하나와 담당자>
+```
 
 - A Korean report uses `현재 단계:`, `남은 단계:`, and `다음 단계:`.
 - An English report uses `Current stage:`, `Remaining stages:`, and `Next step:`.
@@ -32,6 +54,8 @@ Match the user-facing prose and progress-field labels to the language of the cur
 Use the Korean overall status labels only in a Korean report and the English overall status labels only in an English report. Put each field on its own line and keep the next-step field last. Describe meaningful workflow milestones, user decisions, and blockers; do not narrate routine internal reading or tool calls unless they change the user's decision or explain a blocker.
 
 For Korean conversations, write technical terms with the Korean term first and the English original in parentheses on first occurrence, for example `풀 리퀘스트(Pull Request)`, `헤드 SHA(Head SHA)`, and `스쿼시 병합(Squash Merge)`. Do not mix this with English-first `English(Korean)` ordering. After the term is introduced, use the shorter Korean form consistently when meaning stays clear. Keep product names, code, paths, and commands unchanged. For English conversations, use the English term and add Korean only when the user requests bilingual learning.
+
+For a Korean Merge decision, teach the state transition with these exact first-use terms: `초안(Draft)`, `검토 준비 완료(Ready for review)`, and `스쿼시 병합(Squash Merge)`. Present the exact-state fields as `기준 브랜치(Base Branch)`, `작업 브랜치(Head Branch)`, `헤드 SHA(Head SHA)`, `현재 검사(Current checks)`, `미해결 리뷰(Unresolved reviews)`, `필수 리뷰(Required reviews)`, `병합 가능 여부(Mergeability)`, `병합 방식(Merge method)`, and `예상 스쿼시 커밋 제목(Expected Squash Commit title)` on first use. State that one exact-state final approval first authorizes moving from Draft to Ready for review and authorizes Squash Merge only after the state remains unchanged and required checks and reviews pass.
 
 ## Load only the references needed now
 
@@ -55,7 +79,7 @@ Write GitHub publication content in complete English first, followed by a Korean
 
 Before an authenticated GitHub operation, distinguish these states: source exists, files installed, skill discovered, skill activated, GitHub authenticated, requested action authorized, and action currently usable. For GitHub CLI, use browser-only interactive authentication, protect device codes and tokens, verify the exact account and scopes in the same execution environment, and resume already authorized work after login. Authentication does not authorize Push or Merge.
 
-Use one Start authorization for the stated delivery scope and one exact-state Final Merge authorization. Do not ask the user to say “next” after every already authorized stage. Final authorization applies only to the displayed exact Pull Request, Base Branch, Head Branch, Head SHA, current checks, unresolved reviews, required reviews, mergeability, method, and expected Squash title. Any new Commit, base/title/method change, failing check, conflict, or blocking review invalidates it and requires a new approval. Return to Draft before corrective or new-state development, then retest, re-review, and request approval for the new exact state. A normal pending-to-passing check after Ready does not invalidate approval.
+Use one Start authorization for the stated delivery scope and one exact-state Final Merge authorization. Repeated `next` messages do not grant Final Merge authorization. Do not ask the user to say “next” after every already authorized stage. One exact-state final approval first authorizes changing Draft to Ready for review and, only after the approved state remains unchanged and every required check and review passes, authorizes Squash Merge. Final authorization applies only to the displayed exact Pull Request, Base Branch, Head Branch, Head SHA, current checks, unresolved reviews, required reviews, mergeability, method, and expected Squash title. Any new Commit, base/title/method change, failing check, conflict, or blocking review invalidates it and requires a new approval. Return to Draft before corrective or new-state development, then retest, re-review, and request approval for the new exact state. A normal pending-to-passing check after Ready does not invalidate approval.
 
 Before the first Push to a PUBLIC remote, review all reachable Git history intended for publication, including author/committer identity and email metadata. Use a GitHub-provided `noreply` email as the default-safe public Commit identity. General publication approval does not authorize a personal or unapproved non-noreply email; stop and do not Push if one is reachable. Never print secrets or personal identifiers in reports.
 
