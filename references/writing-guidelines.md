@@ -4,7 +4,17 @@
 
 ### Unambiguous referents
 
-Keep explicit subjects, objects, and property names whenever omitting them could create more than one interpretation. Treat supplied target, property, and value as separate facts. For example, a Discord bot has display name `Google News` and uses the project Google News icon; YouTube has display name `YouTube` and uses the project YouTube icon. These are illustrative examples, not a universal project rule.
+Keep explicit subjects, objects, and property names whenever omitting them could create more than one interpretation. Treat supplied target, property, and value as separate facts. For example:
+
+```text
+Discord bot display name: `Google News`
+Discord bot icon: the project's Google News icon
+
+Discord bot display name: `YouTube`
+Discord bot icon: the project's YouTube icon
+```
+
+These are illustrative examples, not a universal project rule.
 
 ### Source layout
 
@@ -18,7 +28,17 @@ For one document containing both languages, use `## English` followed by `## 한
 
 ### 모호하지 않은 지시 대상
 
-생략하면 둘 이상의 해석이 가능한 경우에는 주어, 대상, 속성 이름을 명확히 씁니다. 제공된 대상, 속성, 값은 서로 다른 사실로 다룹니다. 예를 들어 Discord bot의 display name은 `Google News`이고 icon은 프로젝트 Google News icon입니다. YouTube의 display name은 `YouTube`이고 icon은 프로젝트 YouTube icon입니다. 이 예시는 설명을 위한 것이며 모든 프로젝트에 적용하는 규칙이 아닙니다.
+생략하면 둘 이상의 해석이 가능한 경우에는 주어, 대상, 속성 이름을 명확히 씁니다. 제공된 대상, 속성, 값은 서로 다른 사실로 다룹니다. 예를 들면 다음과 같이 작성합니다.
+
+```text
+Discord bot(디스코드 봇)의 표시 이름: `Google News`
+Discord bot의 아이콘: 프로젝트의 Google News 아이콘
+
+Discord bot의 표시 이름: `YouTube`
+Discord bot의 아이콘: 프로젝트의 YouTube 아이콘
+```
+
+이 예시는 설명을 위한 것이며 모든 프로젝트에 적용하는 규칙이 아닙니다.
 
 ### 원본 레이아웃
 

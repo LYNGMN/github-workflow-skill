@@ -360,6 +360,15 @@ test('English Issue Forms expose distinct contract fields and the PR template re
   for (const id of ['requested-outcome', 'context', 'impact', 'priority', 'labels', 'assignee', 'acceptance', 'evidence', 'keywords', 'questions']) {
     assert.match(feature, new RegExp(`id: ${id}`), `feature form must expose ${id}`);
   }
+  const issueWorkflow = topLevelSection(read('references/github-workflow.md'), 'Issue');
+  expectText(issueWorkflow, [
+    /Shared input:[\s\S]{0,500}(?:Summary or Requested Outcome)[\s\S]{0,500}Context[\s\S]{0,500}Acceptance Criteria/i,
+    /Bug-specific input:[\s\S]{0,300}Reproduction[\s\S]{0,300}Actual Result[\s\S]{0,300}Expected Result/i,
+    /Feature-specific input:[\s\S]{0,300}Requested Outcome/i,
+    /공통 입력:[\s\S]{0,500}Summary 또는 Requested Outcome[\s\S]{0,500}Context[\s\S]{0,500}Acceptance Criteria/,
+    /Bug 전용 입력:[\s\S]{0,300}Reproduction[\s\S]{0,300}Actual Result[\s\S]{0,300}Expected Result/,
+    /Feature 전용 입력:[\s\S]{0,300}Requested Outcome/
+  ], 'Issue type-specific input contract');
   for (const issue of [bug, feature]) {
     expectText(issue, [
       /id: existing-search-results/, /label: Existing search results/i,
@@ -429,17 +438,29 @@ test('concepts provide English and Korean sections with explanations for every r
 
 test('writing guidelines preserve referents, readable source structure, and bilingual headings', () => {
   const guidelines = read('references/writing-guidelines.md');
+  const english = topLevelSection(guidelines, 'English');
+  const korean = topLevelSection(guidelines, '한국어');
   expectText(guidelines, [
     /## English\n[\s\S]*?## 한국어/i,
     /explicit subjects, objects, and property names[\s\S]{0,180}more than one interpretation/i,
-    /Discord bot[\s\S]{0,140}display name[\s\S]{0,100}`Google News`[\s\S]{0,140}project Google News icon/i,
-    /YouTube[\s\S]{0,120}display name[\s\S]{0,100}`YouTube`[\s\S]{0,140}project YouTube icon/i,
     /Do not insert a source newline inside a word, product name, URL, inline code span, or Markdown link/i,
     /Do not hard-wrap prose at a fixed column/i,
     /one blank line around paragraphs, lists, tables, and code blocks/i,
     /Under an existing `##` topic, use `### English` and `### 한국어`/i,
     /complete English and Korean sections/i
   ], 'writing guidelines');
+  expectText(english, [
+    /Discord bot display name:\s*`Google News`/,
+    /Discord bot icon:\s*the project's Google News icon/i,
+    /Discord bot display name:\s*`YouTube`/,
+    /Discord bot icon:\s*the project's YouTube icon/i
+  ], 'English explicit Discord bot targets');
+  expectText(korean, [
+    /Discord bot\(디스코드 봇\)의 표시 이름:\s*`Google News`/,
+    /Discord bot의 아이콘:\s*프로젝트의 Google News 아이콘/,
+    /Discord bot의 표시 이름:\s*`YouTube`/,
+    /Discord bot의 아이콘:\s*프로젝트의 YouTube 아이콘/
+  ], 'Korean explicit Discord bot targets');
   assert.doesNotMatch(guidelines, /Google News Bot|YouTube Bot|emoji|trademark/i);
 });
 
