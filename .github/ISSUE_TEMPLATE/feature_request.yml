@@ -1,0 +1,53 @@
+name: Feature request
+description: Propose a requested outcome in English
+title: "[Area] Describe the requested outcome"
+body:
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Existing-item search
+      options:
+        - label: I searched existing Issues before opening this request.
+          required: true
+  - type: textarea
+    id: existing-search-results
+    attributes: { label: Existing search results, description: "Record every query, repository/scope searched, and result status/count, including no matches. Attach related Issue/PR URLs when matches or near-duplicates exist." }
+    validations: { required: true }
+  - type: markdown
+    attributes:
+      value: "Use an English, searchable title: [Area] problem or requested outcome. Include product/component and the requested outcome."
+  - type: markdown
+    attributes:
+      value: "Use one problem or requested outcome per Issue. Put independently deliverable outcomes in a separate Issue. An umbrella Issue may connect clearly named sub-issues."
+  - type: textarea
+    id: requested-outcome
+    attributes: { label: Requested Outcome, description: "What result should exist when this request is complete?" }
+    validations: { required: true }
+  - type: textarea
+    id: context
+    attributes: { label: Context, description: "User problem, product area, environment, and relevant conditions." }
+  - type: textarea
+    id: impact
+    attributes: { label: Impact, description: "Who benefits and what changes for them?" }
+  - type: input
+    id: priority
+    attributes: { label: Priority, description: "Use the confirmed repository taxonomy. Otherwise enter Needs confirmation, state observed impact, and add the taxonomy to Open Questions." }
+  - type: input
+    id: labels
+    attributes: { label: Labels, description: "Suggested existing Labels only; this form does not create Labels." }
+  - type: input
+    id: assignee
+    attributes: { label: Assignee, description: "Suggested responsible person, if known." }
+  - type: textarea
+    id: acceptance
+    attributes: { label: Acceptance Criteria, description: "Observable conditions for completion." }
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes: { label: Evidence, description: "Research, screenshots, links, or relevant examples." }
+  - type: input
+    id: keywords
+    attributes: { label: Search keywords, description: "3–7 useful aliases or terms; do not keyword-stuff." }
+  - type: textarea
+    id: questions
+    attributes: { label: Open Questions, description: "Unknown facts or decisions; do not guess." }

@@ -1,0 +1,7 @@
+{
+  "name": "managing-git-safely-skill",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}
