@@ -3,6 +3,7 @@ name: managing-github-workflows
 description: Use when a requested outcome creates, reviews, publishes, or merges GitHub-hosted work through an Issue, Pull Request, Review, browser authentication, Ready for review, or Squash Merge; also when a Korean request mentions GitHub 이슈, 풀 리퀘스트, 리뷰, 초안 해제, 공개, or 병합.
 license: MIT
 compatibility: Requires an Agent Skills-compatible runtime. Git and GitHub tools are optional and depend on the requested action.
+argument-hint: "[이슈나 PR로 할 일]"
 ---
 
 # Managing GitHub Workflows

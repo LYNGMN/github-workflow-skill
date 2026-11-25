@@ -1,6 +1,6 @@
 interface:
   display_name: "Managing GitHub Workflows"
-  short_description: "Safe GitHub Issues, Pull Requests, review, and Merge"
+  short_description: "이슈·PR 게시·병합 흐름 · [이슈나 PR로 할 일]"
   default_prompt: "Use $managing-github-workflows as the canonical GitHub workflow owner. Match the user's language; every response must include Status, Current stage, Remaining stages, and Next step in English or their Korean equivalents, with the next-step field last. Repeated next messages are not Merge approval. One exact-state approval authorizes Draft to Ready for review and, only after unchanged requirements pass, Squash Merge. In Korean, write specialized terms in Korean first with the English original in parentheses."
 
 policy:
